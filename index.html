@@ -590,11 +590,16 @@ function buildHolidayDropdown(year,selId){
 }
 
 // ── Employee (role 1-2) ────────────────────────────────────────────
-function empTab(tab,btn){
-  document.querySelectorAll("#view-employee .tab-btn").forEach(function(b){b.classList.remove("active");});
+function empTab(tab, btn) {
+  document.querySelectorAll("#view-employee .tab-btn").forEach(function(b){ b.classList.remove("active"); });
   btn.classList.add("active");
-  if(tab==="dashboard"){show("emp-dashboard");hide("emp-request");renderEmployee();}
-  else{hide("emp-dashboard");show("emp-request");buildTypeButtons("type-btns",selectedType,function(id){selectedType=id;buildTypeButtons("type-btns",selectedType,null);handleTypeSelect(id,"f-from","f-to","f-to-wrap","label-from","f-dayoff","dayoff-extra","comp-extra","f-comp-holiday",updateSubmitBtn);updateSubmitBtn();});updateSubmitBtn();}
+  if (tab === "dashboard") {
+    show("emp-dashboard"); hide("emp-request"); renderEmployee();
+  } else {
+    hide("emp-dashboard"); show("emp-request");
+    buildTypeButtons("type-btns", selectedType, null); // ← ไม่ต้องส่ง callback แล้ว
+    updateSubmitBtn();
+  }
 }
 function renderEmployee(){
   if(!currentUser||!canLeave(currentUser.role))return;
