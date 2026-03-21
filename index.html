@@ -351,22 +351,33 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
       <div><label class="field-label">สาขา</label><select id="em-branch" class="field-input"><option value="FARM">Farm Chokchai</option><option value="HO">HO สำนักงานใหญ่</option></select></div>
       <div><label class="field-label">ฝ่าย</label>
         <select id="em-dept" class="field-input">
-          <option value="purchase">ฝ่ายจัดซื้อ</option><option value="hr">ฝ่ายบริหารบุคคล</option>
-          <option value="it">ฝ่ายเทคโนโลยีสารสนเทศ (IT)</option><option value="steak">ฝ่ายโชคชัยสเต็คเฮ้าฟาร์ม</option>
-          <option value="accounting">ฝ่ายบัญชี-การเงิน</option><option value="accounting_fin">ฝ่ายสำนักงาน-รปภ.</option>
+          <option value="purchase">ฝ่ายจัดซื้อ</option>
+          <option value="hr">ฝ่ายบริหารบุคคล</option>
+          <option value="it">ฝ่ายเทคโนโลยีสารสนเทศ (IT)</option>
+          <option value="steak">ฝ่ายโชคชัยสเต็คเฮ้าฟาร์ม</option>
+          <option value="accounting">ฝ่ายบัญชี-การเงิน</option>
+          <option value="accounting_fin">ฝ่ายสำนักงาน-รปภ.</option>
           <option value="security">ฝ่ายสำนักงาน-ธุรการ</option>
-          <option value="tourism_museum">ฝ่ายท่องเที่ยว-มิวเซียม</option><option value="tourism_act">ฝ่ายท่องเที่ยว-กิจกรรม</option>
-          <option value="tourism_shop">ฝ่ายท่องเที่ยว-ร้านค้า</option><option value="eng">ฝ่ายวิศวกรรม</option>
-          <option value="crop">ฝ่ายพืชอาหารสัตว์</option><option value="livestock">ฝ่ายปศุสัตว์</option>
-          <option value="dairy">ฝ่ายโรงงานนม</option><option value="horticulture">ฝ่ายพืชสวนผลไม้</option>
-          <option value="agrimech">ฝ่ายบริการเครื่องกลเกษตร</option><option value="other">อื่นๆ</option>
+          <option value="tourism_museum">ฝ่ายท่องเที่ยว-มิวเซียม</option>
+          <option value="tourism_act">ฝ่ายท่องเที่ยว-กิจกรรม</option>
+          <option value="tourism_shop">ฝ่ายท่องเที่ยว-ร้านค้า</option>
+          <option value="eng">ฝ่ายวิศวกรรม</option>
+          <option value="crop">ฝ่ายพืชอาหารสัตว์</option>
+          <option value="livestock">ฝ่ายปศุสัตว์</option>
+          <option value="dairy">ฝ่ายโรงงานนม</option>
+          <option value="horticulture">ฝ่ายพืชสวนผลไม้</option>
+          <option value="agrimech">ฝ่ายบริการเครื่องกลเกษตร</option>
+          <option value="other">อื่นๆ</option>
         </select>
       </div>
       <div><label class="field-label">Role</label>
         <select id="em-role" class="field-input">
-          <option value="employee">1. พนักงาน</option><option value="supervisor">2. หัวหน้างาน</option>
-          <option value="assistant_mgr">3. ผู้ช่วยผู้จัดการ</option><option value="manager">4. ผู้จัดการ</option>
-          <option value="deputy">5. รองกรรมการผู้จัดการ</option><option value="admin">6. ผู้ดูแลระบบ</option>
+          <option value="employee">1. พนักงาน</option>
+          <option value="supervisor">2. หัวหน้างาน</option>
+          <option value="assistant_mgr">3. ผู้ช่วยผู้จัดการ</option>
+          <option value="manager">4. ผู้จัดการ</option>
+          <option value="deputy">5. รองกรรมการผู้จัดการ</option>
+          <option value="admin">6. ผู้ดูแลระบบ</option>
         </select>
       </div>
       <div id="em-err" class="error-msg hidden"><span>⚠️</span><span id="em-err-text"></span></div>
@@ -416,12 +427,12 @@ var DEPTS = {
   hr:{label:"ฝ่ายบริหารบุคคล",color:"#166534",bg:"#f0fdf4",border:"#bbf7d0"},
   it:{label:"ฝ่ายเทคโนโลยีสารสนเทศ (IT)",color:"#1e40af",bg:"#eff6ff",border:"#bfdbfe"},
   steak:{label:"ฝ่ายโชคชัยสเต็คเฮ้าฟาร์ม",color:"#9f1239",bg:"#fff1f2",border:"#fecdd3"},
-  accounting:{label:"ฝ่ายบัญชี",color:"#0369a1",bg:"#f0f9ff",border:"#bae6fd"},
-  accounting_fin:{label:"ฝ่ายบัญชี-การเงิน",color:"#0e7490",bg:"#ecfeff",border:"#a5f3fc"},
-  security:{label:"ฝ่ายเจ้าหน้าที่รักษาความปลอดภัย",color:"#44403c",bg:"#fafaf9",border:"#d6d3d1"},
-  tourism_museum:{label:"ฝ่ายท่องเที่ยวมิวเซียม",color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
-  tourism_act:{label:"ฝ่ายท่องเที่ยวกิจกรรม",color:"#15803d",bg:"#f0fdf4",border:"#86efac"},
-  tourism_shop:{label:"ฝ่ายท่องเที่ยวร้านค้า",color:"#b45309",bg:"#fffbeb",border:"#fcd34d"},
+  accounting:{label:"ฝ่ายบัญชี-การเงิน",color:"#0369a1",bg:"#f0f9ff",border:"#bae6fd"},
+  accounting_fin:{label:"ฝ่ายสำนักงาน-รปภ.",color:"#0e7490",bg:"#ecfeff",border:"#a5f3fc"},
+  security:{label:"ฝ่ายสำนักงาน-ธุรการ",color:"#44403c",bg:"#fafaf9",border:"#d6d3d1"},
+  tourism_museum:{label:"ฝ่ายท่องเที่ยว-มิวเซียม",color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
+  tourism_act:{label:"ฝ่ายท่องเที่ยว-กิจกรรม",color:"#15803d",bg:"#f0fdf4",border:"#86efac"},
+  tourism_shop:{label:"ฝ่ายท่องเที่ยว-ร้านค้า",color:"#b45309",bg:"#fffbeb",border:"#fcd34d"},
   eng:{label:"ฝ่ายวิศวกรรม",color:"#44403c",bg:"#fafaf9",border:"#d6d3d1"},
   crop:{label:"ฝ่ายพืชอาหารสัตว์",color:"#3f6212",bg:"#f7fee7",border:"#bef264"},
   livestock:{label:"ฝ่ายปศุสัตว์",color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
