@@ -563,7 +563,13 @@ function enterApp(user){
   var sTxt="";if(user.startDate){var sd=new Date(user.startDate);sTxt=" · เริ่มงาน "+sd.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"});}
   $("hdr-dept").textContent=dTxt+sTxt;
   $("hdr-tenure").textContent=user.startDate?("อายุงาน "+calcTenure(user.startDate)):"";
-  var rb=$("hdr-role-badge");rb.className="role-badge";
+  var rb=$("hdr-role-badge"); rb.className="role-badge";
+  var badge = user.customRoleLabel || ROLE_BADGE[user.role] || "";
+  if(badge){
+    rb.textContent=badge;
+    rb.classList.add(ROLE_CLS[user.role]);
+    rb.classList.remove("hidden");
+  } else rb.classList.add("hidden");
   var badge=ROLE_BADGE[user.role]||"";
   if(badge){rb.textContent=badge;rb.classList.add(ROLE_CLS[user.role]);rb.classList.remove("hidden");}
   else rb.classList.add("hidden");
