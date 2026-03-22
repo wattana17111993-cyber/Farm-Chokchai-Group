@@ -858,11 +858,30 @@ function renderEmpTable(){
   }).join(""):"<tr><td colspan=\"7\" style=\"text-align:center;color:#bbb;padding:32px\">ไม่พบพนักงาน</td></tr>";
 }
 function openEmpModal(key){
-  empEditId=key;hide("em-err");
-  if(key){var u=usersData[key];if(!u)return;$("emp-modal-title").textContent="แก้ไขข้อมูลพนักงาน";$("em-name").value=u.name||"";$("em-username").value=u.username||"";$("em-password").value=u.password||"";$("em-position").value=u.position||"";$("em-startdate").value=u.startDate||"";$("em-branch").value=u.branch||"FARM";$("em-dept").value=u.dept||"steak";$("em-role").value=u.role||"employee";}
-  else{$("emp-modal-title").textContent="เพิ่มพนักงานใหม่";["em-name","em-username","em-password","em-position","em-startdate"].forEach(function(id){$(id).value="";});$("em-branch").value="FARM";$("em-dept").value="steak";$("em-role").value="employee";}
+  empEditId=key; hide("em-err");
+  if(key){
+    var u=usersData[key]; if(!u)return;
+    $("emp-modal-title").textContent="แก้ไขข้อมูลพนักงาน";
+    $("em-name").value=u.name||"";
+    $("em-username").value=u.username||"";
+    $("em-password").value=u.password||"";
+    $("em-position").value=u.position||"";
+    $("em-startdate").value=u.startDate||"";
+    $("em-branch").value=u.branch||"FARM";
+    $("em-dept").value=u.dept||"steak";
+    $("em-role").value=u.role||"employee";
+    $("em-custom-label").value=u.customRoleLabel||"";
+  } else {
+    $("emp-modal-title").textContent="เพิ่มพนักงานใหม่";
+    ["em-name","em-username","em-password","em-position","em-startdate","em-custom-label"]
+      .forEach(function(id){$(id).value="";});
+    $("em-branch").value="FARM";
+    $("em-dept").value="steak";
+    $("em-role").value="employee";
+  }
   show("emp-modal");
 }
+
 async function saveEmployee(){
   var name=($("em-name").value||"").trim(),username=($("em-username").value||"").trim(),password=($("em-password").value||"").trim();
   var position=($("em-position").value||"").trim(),startDate=$("em-startdate").value||"",branch=$("em-branch").value||"FARM",dept=$("em-dept").value||"steak",role=$("em-role").value||"employee";
