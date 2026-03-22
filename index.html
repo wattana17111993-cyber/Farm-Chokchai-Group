@@ -380,7 +380,11 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <option value="admin">6. ผู้ดูแลระบบ</option>
         </select>
       </div>
-      <div id="em-err" class="error-msg hidden"><span>⚠️</span><span id="em-err-text"></span></div>
+     <div>
+  <label class="field-label">ชื่อตำแหน่งพิเศษ (แสดงแทน Role)</label>
+  <input id="em-custom-label" class="field-input" placeholder="เช่น ประธานเจ้าหน้าที่บริหาร">
+  <div style="font-size:11px;color:#aaa;margin-top:4px">หากกรอก จะแสดง badge นี้แทนชื่อ Role ปกติ</div>
+</div>
     </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('emp-modal')">ยกเลิก</button><button class="btn-confirm" onclick="saveEmployee()">บันทึก</button></div>
   </div>
