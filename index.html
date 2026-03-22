@@ -883,18 +883,41 @@ function openEmpModal(key){
 }
 
 async function saveEmployee(){
-  var name=($("em-name").value||"").trim(),username=($("em-username").value||"").trim(),password=($("em-password").value||"").trim();
-  var position=($("em-position").value||"").trim(),startDate=$("em-startdate").value||"",branch=$("em-branch").value||"FARM",dept=$("em-dept").value||"steak",role=$("em-role").value||"employee";
-  if(!name||!username||!password){$("em-err-text").textContent="กรุณากรอกชื่อ Username และรหัสผ่าน";show("em-err");return;}
-  var snap=await db.ref("users").once("value");var all=snap.val()||{};
+  var name=($("em-name").value||"").trim(),
+      username=($("em-username").value||"").trim(),
+      password=($("em-password").value||"").trim(),
+      position=($("em-position").value||"").trim(),
+      startDate=$("em-startdate").value||"",
+      branch=$("em-branch").value||"FARM",
+      dept=$("em-dept").value||"steak",
+      role=$("em-role").value||"employee",
+      customRoleLabel=($("em-custom-label").value||"").trim();
+
+  if(!name||!username||!password){
+    $("em-err-text").textContent="กรุณากรอกชื่อ Username และรหัสผ่าน";
+    show("em-err"); return;
+  }
+  var snap=await db.ref("users").once("value"); var all=snap.val()||{};
   var dup=Object.entries(all).filter(function(e){return e[1].username===username&&e[0]!==empEditId;});
   if(dup.length){$("em-err-text").textContent="Username นี้ถูกใช้แล้ว";show("em-err");return;}
+
   var color=ROLE_COLOR[role]||"#1a1a1a";
-  var data={name:name,username:username,password:password,position:position,startDate:startDate,branch:branch,dept:role==="admin"?null:dept,role:role,avatar:name[0],color:color};
-  if(empEditId){await db.ref("users/"+empEditId).update(data);}
-  else{var newKey=db.ref("users").push().key;await db.ref("users/"+newKey).set(data);if(canLeave(role))await db.ref("quota/"+newKey).set(JSON.parse(JSON.stringify(DEFAULT_QUOTA)));}
+  var data={
+    name:name, username:username, password:password,
+    position:position, startDate:startDate, branch:branch,
+    dept:role==="admin"?null:dept, role:role,
+    avatar:name[0], color:color,
+    customRoleLabel:customRoleLabel   // ← เพิ่ม
+  };
+  if(empEditId){ await db.ref("users/"+empEditId).update(data); }
+  else {
+    var newKey=db.ref("users").push().key;
+    await db.ref("users/"+newKey).set(data);
+    if(canLeave(role)) await db.ref("quota/"+newKey).set(JSON.parse(JSON.stringify(DEFAULT_QUOTA)));
+  }
   closeModal("emp-modal");
 }
+
 function openDelModal(key,name){delTargetId=key;$("del-emp-name").textContent=name;show("del-modal");}
 async function confirmDelete(){if(!delTargetId)return;await db.ref("users/"+delTargetId).remove();closeModal("del-modal");delTargetId=null;}
 function openQuotaModal(key){
