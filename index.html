@@ -513,14 +513,26 @@ function refreshViews(){
 
 async function initDB(){
   try{
-    var saved=loadSession();
-    if(saved&&saved._key){
-      var s2=await db.ref("users/"+saved._key).once("value");
-      if(s2.val()){seedAndMigrate();hide("db-loading");enterApp(Object.assign({},s2.val(),{_key:saved._key}));return;}
+    // แสดง login ก่อนเลย ไม่รอ Firebase
+    hide("db-loading");
+    show("login-page");
+
+    // ถ้ามี session เก็บไว้ ให้ลอง auto-login เงียบๆ
+    var saved = loadSession();
+    if(saved && saved._key){
+      db.ref("users/"+saved._key).once("value").then(function(s){
+        if(s.val()){
+          seedAndMigrateBackground(); // migrate ทำ background
+          enterApp(Object.assign({},s.val(),{_key:saved._key}));
+        }
+      }).catch(function(){});
     }
-    await seedAndMigrate();hide("db-loading");show("login-page");
-  }catch(err){console.error(err);hide("db-loading");show("login-page");}
+  } catch(err){
+    hide("db-loading");
+    show("login-page");
+  }
 }
+
 async function seedAndMigrate(){
   var snap=await db.ref("users").once("value");
   if(!snap.val()){
@@ -533,6 +545,9 @@ async function seedAndMigrate(){
   var qSnap=await db.ref("quota").once("value");var qEx=qSnap.val()||{};var qUpd={};
   Object.entries(uAll).forEach(function(e){var k=e[0],u=e[1];if(canLeave(u.role)){if(!qEx[k])qUpd[k]=JSON.parse(JSON.stringify(DEFAULT_QUOTA));else if(!qEx[k].comp||qEx[k].comp.total!==20)qUpd[k+"/comp"]={used:(qEx[k]&&qEx[k].comp?qEx[k].comp.used:0),total:20};}});
   if(Object.keys(qUpd).length>0)await db.ref("quota").update(qUpd);
+}
+  async function seedAndMigrateBackground(){
+  try{ await seedAndMigrate(); } catch(e){ console.warn("migrate:",e); }
 }
 
 function togglePw(){var i=$("inp-pw");i.type=i.type==="password"?"text":"password";}
@@ -547,15 +562,30 @@ document.addEventListener("DOMContentLoaded",function(){
   if(mft)mft.addEventListener("change",mgrUpdateSubmitBtn);
 });
 async function doLogin(){
-  var u=($("inp-user").value||"").trim(),p=$("inp-pw").value||"";
+  var u=($("inp-user").value||"").trim(), p=$("inp-pw").value||"";
   if(!u||!p){$("login-error-text").textContent="กรุณากรอกชื่อผู้ใช้และรหัสผ่าน";show("login-error");return;}
   var btn=$("btn-login");btn.disabled=true;btn.textContent="กำลังเข้าสู่ระบบ...";
   try{
-    var snap=await db.ref("users").once("value");var all=snap.val()||{};var entry=null;
+    var snap=await db.ref("users").once("value");
+    var all=snap.val()||{};
+    var entry=null;
     Object.entries(all).forEach(function(e){if(e[1].username===u&&e[1].password===p)entry=e;});
-    if(entry){hide("login-error");enterApp(Object.assign({},entry[1],{_key:entry[0]}));}
-    else{$("login-error-text").textContent="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";show("login-error");btn.disabled=false;btn.textContent="เข้าสู่ระบบ →";}
-  }catch(err){$("login-error-text").textContent="เกิดข้อผิดพลาด";show("login-error");btn.disabled=false;btn.textContent="เข้าสู่ระบบ →";}
+    if(entry){
+      hide("login-error");
+      enterApp(Object.assign({},entry[1],{_key:entry[0]}));
+      seedAndMigrateBackground(); // migrate หลัง login ไม่บล็อก
+    } else {
+      $("login-error-text").textContent="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
+      show("login-error");
+      btn.disabled=false;
+      btn.textContent="เข้าสู่ระบบ →";
+    }
+  } catch(err){
+    $("login-error-text").textContent="เกิดข้อผิดพลาด";
+    show("login-error");
+    btn.disabled=false;
+    btn.textContent="เข้าสู่ระบบ →";
+  }
 }
 function enterApp(user){
   currentUser=user;saveSession(user);
