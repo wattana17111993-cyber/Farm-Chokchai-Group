@@ -712,10 +712,6 @@ function renderApprove(){
 
   var lEl=$("mgr-list");if(lEl)lEl.innerHTML=renderRows(filtered,"manager");
 }
-
-  var lEl = $("mgr-list");
-  if (lEl) lEl.innerHTML = renderRows(filtered, "manager");
-}
 function mgrSelectType(id){mgrSelectedType=id;buildTypeButtons("mgr-type-btns",mgrSelectedType,null);handleTypeSelect(id,"mgr-f-from","mgr-f-to","mgr-f-to-wrap","mgr-label-from","mgr-f-dayoff","mgr-dayoff-extra","mgr-comp-extra","mgr-f-comp-holiday",mgrUpdateSubmitBtn);mgrUpdateSubmitBtn();}
 function mgrUpdateSubmitBtn(){
   var el=$("mgr-btn-submit-leave");if(!el)return;
