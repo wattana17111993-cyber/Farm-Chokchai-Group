@@ -891,8 +891,21 @@ function renderEmpTable(){
     +"</tr>";
   }).join(""):"<tr><td colspan=\"7\" style=\"text-align:center;color:#bbb;padding:32px\">ไม่พบพนักงาน</td></tr>";
 }
+
 function openEmpModal(key){
   empEditId=key; hide("em-err");
+
+  // inject field ถ้ายังไม่มี
+  if(!$("em-custom-label")){
+    var wrap=document.createElement("div");
+    wrap.innerHTML="<label class=\"field-label\">ชื่อตำแหน่งพิเศษ (แสดงแทน Role)</label>"
+      +"<input id=\"em-custom-label\" class=\"field-input\" placeholder=\"เช่น ประธานเจ้าหน้าที่บริหาร\">"
+      +"<div style=\"font-size:11px;color:#aaa;margin-top:4px\">หากกรอก จะแสดง badge นี้แทนชื่อ Role ปกติ</div>";
+    // แทรกก่อน em-err
+    var errEl=$("em-err");
+    errEl.parentNode.insertBefore(wrap, errEl);
+  }
+
   if(key){
     var u=usersData[key]; if(!u)return;
     $("emp-modal-title").textContent="แก้ไขข้อมูลพนักงาน";
@@ -925,7 +938,7 @@ async function saveEmployee(){
       branch=$("em-branch").value||"FARM",
       dept=$("em-dept").value||"steak",
       role=$("em-role").value||"employee",
-      customRoleLabel=($("em-custom-label").value||"").trim();
+      customRoleLabel=($("em-custom-label")?$("em-custom-label").value||"":"").trim();
 
   if(!name||!username||!password){
     $("em-err-text").textContent="กรุณากรอกชื่อ Username และรหัสผ่าน";
@@ -941,7 +954,7 @@ async function saveEmployee(){
     position:position, startDate:startDate, branch:branch,
     dept:role==="admin"?null:dept, role:role,
     avatar:name[0], color:color,
-    customRoleLabel:customRoleLabel   // ← เพิ่ม
+    customRoleLabel:customRoleLabel
   };
   if(empEditId){ await db.ref("users/"+empEditId).update(data); }
   else {
