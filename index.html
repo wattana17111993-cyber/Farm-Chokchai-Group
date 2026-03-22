@@ -420,7 +420,16 @@ var ROLE_COLOR  = {employee:"#1a1a1a",supervisor:"#0369a1",assistant_mgr:"#6b21a
 function getRoleLevel(r){return ROLE_LEVEL[r]||1;}
 function isManagerLevel(r){return getRoleLevel(r)>=3;}
 function canLeave(r){return r!=="deputy"&&r!=="admin";}
-function canApproveTarget(myRole,targetRole){var m=getRoleLevel(myRole),t=getRoleLevel(targetRole||"employee");return m>=3&&m>t;}
+function canApproveTarget(myRole, targetRole) {
+  var m = getRoleLevel(myRole);
+  var t = getRoleLevel(targetRole || "employee");
+
+  // role 5 (deputy) อนุมัติได้เฉพาะ level 4 (manager) เท่านั้น
+  if (myRole === "deputy") return t === 4;
+
+  // role อื่นๆ: ต้องเป็น manager level ขึ้นไป และ level ต้องสูงกว่า target
+  return m >= 3 && m > t;
+}
 
 var DEPTS = {
   purchase:{label:"ฝ่ายจัดซื้อ",color:"#92400e",bg:"#fffbeb",border:"#fde68a"},
@@ -646,19 +655,51 @@ function renderMgrOverview(){
   var cEl=$("mgr-history-count");if(cEl)cEl.textContent=mine.length+" รายการ";
   var lEl=$("mgr-history-list");if(lEl)lEl.innerHTML=buildHistoryList(mine);
 }
-function renderApprove(){
-  if(!currentUser||!isManagerLevel(currentUser.role)||currentUser.role==="admin")return;
-  var myLv=getRoleLevel(currentUser.role);
-  var dept=currentUser.dept;
-  var all=getHistory().filter(function(h){return h.dept===dept&&getRoleLevel(h.userRole||"employee")<myLv;});
-  var stats={pending:all.filter(function(h){return h.status==="pending";}).length,approved:all.filter(function(h){return h.status==="approved";}).length,rejected:all.filter(function(h){return h.status==="rejected";}).length};
-  var s0=document.querySelectorAll("#mgr-approve-section .subtab")[0];
-  if(s0)s0.textContent="รออนุมัติ"+(stats.pending>0?" ("+stats.pending+")":"");
-  var tEl=$("mgr-title");if(tEl)tEl.textContent="คำขอลา — "+((DEPTS[dept]&&DEPTS[dept].label)||dept||"");
-  var sEl=$("mgr-stats");if(sEl)sEl.innerHTML=renderStats(stats);
-  var search=($("mgr-search")||{value:""}).value||"";
-  var filtered=all.filter(function(h){return (mgrStatusTabState==="all"||h.status===mgrStatusTabState)&&(h.employee.includes(search)||h.label.includes(search));});
-  var lEl=$("mgr-list");if(lEl)lEl.innerHTML=renderRows(filtered,"manager");
+function renderApprove() {
+  if (!currentUser || !isManagerLevel(currentUser.role) || currentUser.role === "admin") return;
+
+  var myRole = currentUser.role;
+  var myLv   = getRoleLevel(myRole);
+  var dept   = currentUser.dept;
+
+  // กรองรายการที่ผู้ใช้คนนี้มีสิทธิ์อนุมัติ
+  var all = getHistory().filter(function(h) {
+    var targetLv = getRoleLevel(h.userRole || "employee");
+
+    if (myRole === "deputy") {
+      // deputy: เห็นทุกฝ่าย, อนุมัติได้เฉพาะ level 4 (manager) เท่านั้น
+      return targetLv === 4;
+    } else {
+      // manager / assistant_mgr: เห็นเฉพาะฝ่ายตัวเอง และ level ต่ำกว่า
+      return h.dept === dept && targetLv < myLv;
+    }
+  });
+
+  var stats = {
+    pending:  all.filter(function(h){ return h.status === "pending";  }).length,
+    approved: all.filter(function(h){ return h.status === "approved"; }).length,
+    rejected: all.filter(function(h){ return h.status === "rejected"; }).length
+  };
+
+  var s0 = document.querySelectorAll("#mgr-approve-section .subtab")[0];
+  if (s0) s0.textContent = "รออนุมัติ" + (stats.pending > 0 ? " (" + stats.pending + ")" : "");
+
+  var tEl = $("mgr-title");
+  if (tEl) tEl.textContent = myRole === "deputy"
+    ? "คำขอลา — ทุกฝ่าย"
+    : "คำขอลา — " + ((DEPTS[dept] && DEPTS[dept].label) || dept || "");
+
+  var sEl = $("mgr-stats");
+  if (sEl) sEl.innerHTML = renderStats(stats);
+
+  var search = ($("mgr-search") || { value: "" }).value || "";
+  var filtered = all.filter(function(h) {
+    return (mgrStatusTabState === "all" || h.status === mgrStatusTabState)
+      && (h.employee.includes(search) || h.label.includes(search));
+  });
+
+  var lEl = $("mgr-list");
+  if (lEl) lEl.innerHTML = renderRows(filtered, "manager");
 }
 function mgrSelectType(id){mgrSelectedType=id;buildTypeButtons("mgr-type-btns",mgrSelectedType,null);handleTypeSelect(id,"mgr-f-from","mgr-f-to","mgr-f-to-wrap","mgr-label-from","mgr-f-dayoff","mgr-dayoff-extra","mgr-comp-extra","mgr-f-comp-holiday",mgrUpdateSubmitBtn);mgrUpdateSubmitBtn();}
 function mgrUpdateSubmitBtn(){
