@@ -859,8 +859,32 @@ function renderEmpTable(){
   var all=getAllUsers().filter(function(u){return !search||u.name.toLowerCase().includes(search)||u.username.toLowerCase().includes(search)||(u.position||"").toLowerCase().includes(search);});
   var tb=$("emp-tbody");if(!tb)return;
   tb.innerHTML=all.length?all.map(function(u){
-    var tenure=u.startDate?calcTenure(u.startDate):"";var brLabel=u.branch==="HO"?"🏢 HO":"🐄 Farm";var rLabel=ROLE_LABEL[u.role]||u.role;var rCls=ROLE_CLS[u.role]||"b-personal";
-    return "<tr><td><div style=\"font-weight:600;color:#1a1a1a\">"+u.name+"</div>"+(tenure?"<div style=\"font-size:11px;color:#aaa\">อายุงาน "+tenure+"</div>":"")+"</td>"+"<td style=\"font-family:monospace;font-size:12px;color:#666\">"+u.username+"</td>"+"<td style=\"color:#555\">"+(u.position||"—")+"</td>"+"<td>"+(u.dept?deptPill(u.dept):"—")+"</td>"+"<td><span style=\"font-size:11px;padding:2px 8px;border-radius:20px;background:#f3f3f3;color:#555\">"+brLabel+"</span></td>"+"<td><span class=\"badge "+rCls+"\" style=\"border:none\">"+rLabel+"</span></td>"+"<td style=\"white-space:nowrap\"><button class=\"btn-edit\" onclick=\"openEmpModal('"+u._key+"')\">✏️</button> <button class=\"btn-edit\" style=\"border-color:#bfdbfe;color:#1e40af\" onclick=\"openQuotaModal('"+u._key+"')\">📅</button>"+(u._key!==currentUser._key?" <button class=\"btn-del\" onclick=\"openDelModal('"+u._key+"','"+u.name+"')\">🗑️</button>":"")+"</td></tr>";
+    var tenure=u.startDate?calcTenure(u.startDate):"";
+    var brLabel=u.branch==="HO"?"🏢 HO":"🐄 Farm";
+    return "<tr>"
+      +"<td><div style=\"font-weight:600;color:#1a1a1a\">"+u.name+"</div>"+(tenure?"<div style=\"font-size:11px;color:#aaa\">อายุงาน "+tenure+"</div>":"")+"</td>"
+      +"<td style=\"font-family:monospace;font-size:12px;color:#666\">"+u.username+"</td>"
+      +"<td style=\"color:#555\">"+(u.position||"—")+"</td>"
+      +"<td>"+(u.dept?deptPill(u.dept):"—")+"</td>"
+      +"<td><span style=\"font-size:11px;padding:2px 8px;border-radius:20px;background:#f3f3f3;color:#555\">"+brLabel+"</span></td>"
+      +"<td>"
+        +"<div style='display:flex;flex-direction:column;gap:4px'>"
+        +"<select onchange=\"changeRole('"+u._key+"',this.value)\" "
+        +"style=\"padding:4px 8px;border-radius:8px;border:1.5px solid #e8e8e8;font-size:12px;font-weight:600;"
+        +"color:"+ROLE_COLOR[u.role]+";background:#fafafa;cursor:pointer;outline:none\">"
+        +Object.entries(ROLE_LABEL).map(function(e){
+          return "<option value='"+e[0]+"'"+(u.role===e[0]?" selected":"")+">"+e[1]+"</option>";
+        }).join("")
+        +"</select>"
+        +(u.customRoleLabel?"<span style='font-size:11px;color:#b45309;font-weight:600'>🏷️ "+u.customRoleLabel+"</span>":"")
+        +"</div>"
+      +"</td>"
+      +"<td style=\"white-space:nowrap\">"
+        +"<button class=\"btn-edit\" onclick=\"openEmpModal('"+u._key+"')\">✏️</button> "
+        +"<button class=\"btn-edit\" style=\"border-color:#bfdbfe;color:#1e40af\" onclick=\"openQuotaModal('"+u._key+"')\">📅</button>"
+        +(u._key!==currentUser._key?" <button class=\"btn-del\" onclick=\"openDelModal('"+u._key+"','"+u.name+"')\">🗑️</button>":"")
+      +"</td>"
+    +"</tr>";
   }).join(""):"<tr><td colspan=\"7\" style=\"text-align:center;color:#bbb;padding:32px\">ไม่พบพนักงาน</td></tr>";
 }
 function openEmpModal(key){
