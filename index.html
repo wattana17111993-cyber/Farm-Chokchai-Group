@@ -606,9 +606,9 @@ function enterApp(user){
   rb.classList.add(ROLE_CLS[user.role]);
   rb.classList.remove("hidden");
 } else rb.classList.add("hidden");
-  var badge=ROLE_BADGE[user.role]||"";
-  if(badge){rb.textContent=badge;rb.classList.add(ROLE_CLS[user.role]);rb.classList.remove("hidden");}
-  else rb.classList.add("hidden");
+var badge=user.role==="admin"?(user.customRoleLabel||ROLE_BADGE[user.role]||""):"";
+if(badge){rb.textContent=badge;rb.classList.add(ROLE_CLS[user.role]);rb.classList.remove("hidden");}
+else rb.classList.add("hidden");
   hide("view-employee");hide("view-manager");hide("view-admin");
   var r=user.role;
   if(r==="admin"){show("view-admin");show("admin-leaves");hide("admin-employees");}
