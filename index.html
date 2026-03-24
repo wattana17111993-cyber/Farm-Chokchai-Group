@@ -206,7 +206,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
       <button class="tab-btn" id="mgr-tab-leave" onclick="mgrMainTab('leave',this)">✏️ ยื่นคำขอลา</button>
       <button class="tab-btn" onclick="mgrMainTab('approve',this)">✅ อนุมัติการลา</button>
     </div>
-    <!-- Tab 1: Overview -->
     <div id="mgr-overview-section">
       <div class="grid3" id="mgr-quota-grid"></div>
       <div class="table-card">
@@ -217,7 +216,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
         <div id="mgr-history-list"></div>
       </div>
     </div>
-    <!-- Tab 2: Submit Leave -->
     <div id="mgr-leave-section" class="hidden">
       <div id="mgr-leave-success" class="success-msg hidden">✅ ส่งคำขอลาเรียบร้อยแล้ว</div>
       <div class="form-card">
@@ -252,7 +250,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
         <button id="mgr-btn-submit-leave" class="btn-primary" onclick="submitLeave('mgr')">ส่งคำขอลา →</button>
       </div>
     </div>
-    <!-- Tab 3: Approve -->
     <div id="mgr-approve-section" class="hidden">
       <div class="grid3" id="mgr-stats"></div>
       <div class="table-card">
@@ -381,11 +378,12 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <option value="admin">6. ผู้ดูแลระบบ</option>
         </select>
       </div>
-     <div>
-  <label class="field-label">ชื่อตำแหน่งพิเศษ (แสดงแทน Role)</label>
-  <input id="em-custom-label" class="field-input" placeholder="เช่น ประธานเจ้าหน้าที่บริหาร">
-  <div style="font-size:11px;color:#aaa;margin-top:4px">หากกรอก จะแสดง badge นี้แทนชื่อ Role ปกติ</div>
-</div>
+      <div>
+        <label class="field-label">ชื่อตำแหน่งพิเศษ (แสดงแทน Role)</label>
+        <input id="em-custom-label" class="field-input" placeholder="เช่น ประธานเจ้าหน้าที่บริหาร">
+        <div style="font-size:11px;color:#aaa;margin-top:4px">หากกรอก จะแสดง badge นี้แทนชื่อ Role ปกติ</div>
+      </div>
+      <div id="em-err" class="error-msg hidden"><span>⚠️</span><span id="em-err-text"></span></div>
     </div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('emp-modal')">ยกเลิก</button><button class="btn-confirm" onclick="saveEmployee()">บันทึก</button></div>
   </div>
@@ -428,11 +426,7 @@ function canLeave(r){return r!=="deputy"&&r!=="admin";}
 function canApproveTarget(myRole, targetRole) {
   var m = getRoleLevel(myRole);
   var t = getRoleLevel(targetRole || "employee");
-
-  // role 5 (deputy) อนุมัติได้เฉพาะ level 4 (manager) เท่านั้น
   if (myRole === "deputy") return t === 4;
-
-  // role อื่นๆ: ต้องเป็น manager level ขึ้นไป และ level ต้องสูงกว่า target
   return m >= 3 && m > t;
 }
 
@@ -513,16 +507,13 @@ function refreshViews(){
 
 async function initDB(){
   try{
-    // แสดง login ก่อนเลย ไม่รอ Firebase
     hide("db-loading");
     show("login-page");
-
-    // ถ้ามี session เก็บไว้ ให้ลอง auto-login เงียบๆ
     var saved = loadSession();
     if(saved && saved._key){
       db.ref("users/"+saved._key).once("value").then(function(s){
         if(s.val()){
-          seedAndMigrateBackground(); // migrate ทำ background
+          seedAndMigrateBackground();
           enterApp(Object.assign({},s.val(),{_key:saved._key}));
         }
       }).catch(function(){});
@@ -546,7 +537,7 @@ async function seedAndMigrate(){
   Object.entries(uAll).forEach(function(e){var k=e[0],u=e[1];if(canLeave(u.role)){if(!qEx[k])qUpd[k]=JSON.parse(JSON.stringify(DEFAULT_QUOTA));else if(!qEx[k].comp||qEx[k].comp.total!==20)qUpd[k+"/comp"]={used:(qEx[k]&&qEx[k].comp?qEx[k].comp.used:0),total:20};}});
   if(Object.keys(qUpd).length>0)await db.ref("quota").update(qUpd);
 }
-  async function seedAndMigrateBackground(){
+async function seedAndMigrateBackground(){
   try{ await seedAndMigrate(); } catch(e){ console.warn("migrate:",e); }
 }
 
@@ -573,7 +564,7 @@ async function doLogin(){
     if(entry){
       hide("login-error");
       enterApp(Object.assign({},entry[1],{_key:entry[0]}));
-      seedAndMigrateBackground(); // migrate หลัง login ไม่บล็อก
+      seedAndMigrateBackground();
     } else {
       $("login-error-text").textContent="ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
       show("login-error");
@@ -587,6 +578,7 @@ async function doLogin(){
     btn.textContent="เข้าสู่ระบบ →";
   }
 }
+
 function enterApp(user){
   currentUser=user;saveSession(user);
   var lp=$("login-page");if(lp){lp.style.display="none";lp.classList.add("hidden");}
@@ -599,16 +591,23 @@ function enterApp(user){
   var sTxt="";if(user.startDate){var sd=new Date(user.startDate);sTxt=" · เริ่มงาน "+sd.toLocaleDateString("th-TH",{day:"numeric",month:"short",year:"numeric"});}
   $("hdr-dept").textContent=dTxt+sTxt;
   $("hdr-tenure").textContent=user.startDate?("อายุงาน "+calcTenure(user.startDate)):"";
-  var rb=$("hdr-role-badge"); rb.className="role-badge";
-  var badge = user.role === "admin" ? (user.customRoleLabel || ROLE_BADGE[user.role] || "") : "";
-  if(badge && user.role !== "admin"){
-  rb.textContent=badge;
-  rb.classList.add(ROLE_CLS[user.role]);
-  rb.classList.remove("hidden");
-} else rb.classList.add("hidden");
-var badge=user.role==="admin"?(user.customRoleLabel||ROLE_BADGE[user.role]||""):"";
-if(badge){rb.textContent=badge;rb.classList.add(ROLE_CLS[user.role]);rb.classList.remove("hidden");}
-else rb.classList.add("hidden");
+
+  // ── แสดง role badge เฉพาะ admin เท่านั้น ──
+  var rb=$("hdr-role-badge");
+  rb.className="role-badge";
+  if(user.role==="admin"){
+    var badge=user.customRoleLabel||ROLE_BADGE[user.role]||"";
+    if(badge){
+      rb.textContent=badge;
+      rb.classList.add(ROLE_CLS[user.role]);
+      rb.classList.remove("hidden");
+    } else {
+      rb.classList.add("hidden");
+    }
+  } else {
+    rb.classList.add("hidden");
+  }
+
   hide("view-employee");hide("view-manager");hide("view-admin");
   var r=user.role;
   if(r==="admin"){show("view-admin");show("admin-leaves");hide("admin-employees");}
@@ -621,6 +620,7 @@ else rb.classList.add("hidden");
   }else{show("view-employee");show("emp-dashboard");hide("emp-request");renderEmployee();}
   startListeners();buildHolidayDropdown(2568,"f-comp-holiday");buildHolidayDropdown(2568,"mgr-f-comp-holiday");
 }
+
 function doLogout(){
   stopListeners();clearSession();currentUser=null;selectedType="";selectedPeriod="full";mgrSelectedType="";mgrSelectedPeriod="full";
   var ap=$("app-page");if(ap){ap.style.display="none";ap.classList.add("hidden");}
@@ -640,7 +640,6 @@ function buildHolidayDropdown(year,selId){
   oldSel.parentNode.replaceChild(newSel,oldSel);
 }
 
-// ── Employee (role 1-2) ────────────────────────────────────────────
 function empTab(tab, btn) {
   document.querySelectorAll("#view-employee .tab-btn").forEach(function(b){ b.classList.remove("active"); });
   btn.classList.add("active");
@@ -648,7 +647,7 @@ function empTab(tab, btn) {
     show("emp-dashboard"); hide("emp-request"); renderEmployee();
   } else {
     hide("emp-dashboard"); show("emp-request");
-    buildTypeButtons("type-btns", selectedType, null); // ← ไม่ต้องส่ง callback แล้ว
+    buildTypeButtons("type-btns", selectedType, null);
     updateSubmitBtn();
   }
 }
@@ -674,7 +673,6 @@ function selectType(id){selectedType=id;buildTypeButtons("type-btns",selectedTyp
 function setPeriod(p){selectedPeriod=p;applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");updateSubmitBtn();}
 function selectHolidayYear(y){selectedHolidayYear=y;setYearBtn(y,"btn-year-68","btn-year-69");buildHolidayDropdown(y,"f-comp-holiday");updateSubmitBtn();}
 
-// ── Manager (role 3-4-5) ───────────────────────────────────────────
 function mgrMainTab(tab,btn){
   document.querySelectorAll("#view-manager > .tabs .tab-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
@@ -699,47 +697,27 @@ function renderMgrOverview(){
 }
 function renderApprove(){
   if(!currentUser||!isManagerLevel(currentUser.role)||currentUser.role==="admin")return;
-
-  var myRole = currentUser.role;
-  var myLv   = getRoleLevel(myRole);
-  var dept   = currentUser.dept;
-
-  // deputy ฝ่ายพิเศษ = อนุมัติ role 4 ได้ทุกฝ่าย
-  var isSpecialDeputy = myRole==="deputy" && dept==="special_dept";
-
-  var all = getHistory().filter(function(h){
-    var targetLv = getRoleLevel(h.userRole||"employee");
-    if(myRole==="ceo")          return targetLv===5;
-    if(isSpecialDeputy)         return targetLv===4;           // ทุกฝ่าย role 4
-    if(myRole==="deputy")       return targetLv===4 && h.dept===dept; // deputy ฝ่ายอื่น เฉพาะฝ่ายตัวเอง
-    return h.dept===dept && targetLv<myLv;
+  var myRole=currentUser.role;var myLv=getRoleLevel(myRole);var dept=currentUser.dept;
+  var isSpecialDeputy=myRole==="deputy"&&dept==="special_dept";
+  var all=getHistory().filter(function(h){
+    var targetLv=getRoleLevel(h.userRole||"employee");
+    if(myRole==="ceo")return targetLv===5;
+    if(isSpecialDeputy)return targetLv===4;
+    if(myRole==="deputy")return targetLv===4&&h.dept===dept;
+    return h.dept===dept&&targetLv<myLv;
   });
-
-  var stats={
-    pending:  all.filter(function(h){return h.status==="pending"; }).length,
-    approved: all.filter(function(h){return h.status==="approved";}).length,
-    rejected: all.filter(function(h){return h.status==="rejected";}).length
-  };
-
+  var stats={pending:all.filter(function(h){return h.status==="pending";}).length,approved:all.filter(function(h){return h.status==="approved";}).length,rejected:all.filter(function(h){return h.status==="rejected";}).length};
   var s0=document.querySelectorAll("#mgr-approve-section .subtab")[0];
   if(s0)s0.textContent="รออนุมัติ"+(stats.pending>0?" ("+stats.pending+")":"");
-
   var tEl=$("mgr-title");
   if(tEl){
-    if(myRole==="ceo")            tEl.textContent="คำขอลา — รองกรรมการ";
-    else if(isSpecialDeputy)      tEl.textContent="คำขอลา — ทุกฝ่าย (ฝ่ายพิเศษ)";
-    else if(myRole==="deputy")    tEl.textContent="คำขอลา — "+((DEPTS[dept]&&DEPTS[dept].label)||dept||"");
-    else                          tEl.textContent="คำขอลา — "+((DEPTS[dept]&&DEPTS[dept].label)||dept||"");
+    if(myRole==="ceo")tEl.textContent="คำขอลา — รองกรรมการ";
+    else if(isSpecialDeputy)tEl.textContent="คำขอลา — ทุกฝ่าย (ฝ่ายพิเศษ)";
+    else tEl.textContent="คำขอลา — "+((DEPTS[dept]&&DEPTS[dept].label)||dept||"");
   }
-
   var sEl=$("mgr-stats");if(sEl)sEl.innerHTML=renderStats(stats);
-
   var search=($("mgr-search")||{value:""}).value||"";
-  var filtered=all.filter(function(h){
-    return (mgrStatusTabState==="all"||h.status===mgrStatusTabState)
-      &&(h.employee.includes(search)||h.label.includes(search));
-  });
-
+  var filtered=all.filter(function(h){return (mgrStatusTabState==="all"||h.status===mgrStatusTabState)&&(h.employee.includes(search)||h.label.includes(search));});
   var lEl=$("mgr-list");if(lEl)lEl.innerHTML=renderRows(filtered,"manager");
 }
 function mgrSelectType(id){mgrSelectedType=id;buildTypeButtons("mgr-type-btns",mgrSelectedType,null);handleTypeSelect(id,"mgr-f-from","mgr-f-to","mgr-f-to-wrap","mgr-label-from","mgr-f-dayoff","mgr-dayoff-extra","mgr-comp-extra","mgr-f-comp-holiday",mgrUpdateSubmitBtn);mgrUpdateSubmitBtn();}
@@ -754,7 +732,6 @@ function mgrUpdateSubmitBtn(){
 function mgrSetPeriod(p){mgrSelectedPeriod=p;applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");mgrUpdateSubmitBtn();}
 function mgrSelectHolidayYear(y){mgrSelectedHolidayYear=y;setYearBtn(y,"mgr-btn-year-68","mgr-btn-year-69");buildHolidayDropdown(y,"mgr-f-comp-holiday");mgrUpdateSubmitBtn();}
 
-// ── Shared helpers ─────────────────────────────────────────────────
 function buildQuotaCards(q){
   return TYPES.map(function(t){var qv=q[t.id]||{used:0,total:0};var pct=qv.total>0?Math.round(qv.used/qv.total*100):0;return "<div class=\"card\"><div style=\"font-size:20px;margin-bottom:8px\">"+t.icon+"</div><div style=\"font-size:11px;color:#888;margin-bottom:4px\">"+t.label+"</div><div style=\"display:flex;align-items:baseline;gap:3px;margin-bottom:10px\"><span style=\"font-size:24px;font-weight:700;color:#1a1a1a\">"+qv.used+"</span><span style=\"font-size:11px;color:#bbb\">/ "+qv.total+"</span></div><div class=\"progress-track\"><div class=\"progress-bar\" style=\"width:"+pct+"%\"></div></div></div>";}).join("");
 }
@@ -827,7 +804,6 @@ async function submitLeave(prefix){
   else{updateSubmitBtn();show("emp-success");setTimeout(function(){hide("emp-success");},3000);}
 }
 
-// ── Admin ──────────────────────────────────────────────────────────
 function adminMainTab(tab,btn){
   document.querySelectorAll("#view-admin > .tabs .tab-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
@@ -924,78 +900,42 @@ function renderEmpTable(){
 }
 
 function openEmpModal(key){
-  empEditId=key; hide("em-err");
-
-  // inject field ถ้ายังไม่มี
-  if(!$("em-custom-label")){
-    var wrap=document.createElement("div");
-    wrap.innerHTML="<label class=\"field-label\">ชื่อตำแหน่งพิเศษ (แสดงแทน Role)</label>"
-      +"<input id=\"em-custom-label\" class=\"field-input\" placeholder=\"เช่น ประธานเจ้าหน้าที่บริหาร\">"
-      +"<div style=\"font-size:11px;color:#aaa;margin-top:4px\">หากกรอก จะแสดง badge นี้แทนชื่อ Role ปกติ</div>";
-    // แทรกก่อน em-err
-    var errEl=$("em-err");
-    errEl.parentNode.insertBefore(wrap, errEl);
-  }
-
+  empEditId=key;
+  var errEl=$("em-err");if(errEl)errEl.classList.add("hidden");
   if(key){
-    var u=usersData[key]; if(!u)return;
+    var u=usersData[key];if(!u)return;
     $("emp-modal-title").textContent="แก้ไขข้อมูลพนักงาน";
-    $("em-name").value=u.name||"";
-    $("em-username").value=u.username||"";
-    $("em-password").value=u.password||"";
-    $("em-position").value=u.position||"";
-    $("em-startdate").value=u.startDate||"";
-    $("em-branch").value=u.branch||"FARM";
-    $("em-dept").value=u.dept||"steak";
-    $("em-role").value=u.role||"employee";
+    $("em-name").value=u.name||"";$("em-username").value=u.username||"";$("em-password").value=u.password||"";
+    $("em-position").value=u.position||"";$("em-startdate").value=u.startDate||"";$("em-branch").value=u.branch||"FARM";
+    $("em-dept").value=u.dept||"steak";$("em-role").value=u.role||"employee";
     $("em-custom-label").value=u.customRoleLabel||"";
   } else {
     $("emp-modal-title").textContent="เพิ่มพนักงานใหม่";
-    ["em-name","em-username","em-password","em-position","em-startdate","em-custom-label"]
-      .forEach(function(id){$(id).value="";});
-    $("em-branch").value="FARM";
-    $("em-dept").value="steak";
-    $("em-role").value="employee";
+    ["em-name","em-username","em-password","em-position","em-startdate","em-custom-label"].forEach(function(id){$(id).value="";});
+    $("em-branch").value="FARM";$("em-dept").value="steak";$("em-role").value="employee";
   }
   show("emp-modal");
 }
 
 async function saveEmployee(){
-  var name=($("em-name").value||"").trim(),
-      username=($("em-username").value||"").trim(),
-      password=($("em-password").value||"").trim(),
-      position=($("em-position").value||"").trim(),
-      startDate=$("em-startdate").value||"",
-      branch=$("em-branch").value||"FARM",
-      dept=$("em-dept").value||"steak",
-      role=$("em-role").value||"employee",
+  var name=($("em-name").value||"").trim(),username=($("em-username").value||"").trim(),password=($("em-password").value||"").trim(),
+      position=($("em-position").value||"").trim(),startDate=$("em-startdate").value||"",branch=$("em-branch").value||"FARM",
+      dept=$("em-dept").value||"steak",role=$("em-role").value||"employee",
       customRoleLabel=($("em-custom-label")?$("em-custom-label").value||"":"").trim();
-
   if(!name||!username||!password){
-    $("em-err-text").textContent="กรุณากรอกชื่อ Username และรหัสผ่าน";
-    show("em-err"); return;
+    $("em-err-text").textContent="กรุณากรอกชื่อ Username และรหัสผ่าน";show("em-err");return;
   }
-  var snap=await db.ref("users").once("value"); var all=snap.val()||{};
+  var snap=await db.ref("users").once("value");var all=snap.val()||{};
   var dup=Object.entries(all).filter(function(e){return e[1].username===username&&e[0]!==empEditId;});
   if(dup.length){$("em-err-text").textContent="Username นี้ถูกใช้แล้ว";show("em-err");return;}
-
   var color=ROLE_COLOR[role]||"#1a1a1a";
-  var data={
-    name:name, username:username, password:password,
-    position:position, startDate:startDate, branch:branch,
-    dept:role==="admin"?null:dept, role:role,
-    avatar:name[0], color:color,
-    customRoleLabel:customRoleLabel
-  };
-  if(empEditId){ await db.ref("users/"+empEditId).update(data); }
-  else {
-    var newKey=db.ref("users").push().key;
-    await db.ref("users/"+newKey).set(data);
-    if(canLeave(role)) await db.ref("quota/"+newKey).set(JSON.parse(JSON.stringify(DEFAULT_QUOTA)));
-  }
+  var data={name:name,username:username,password:password,position:position,startDate:startDate,branch:branch,dept:role==="admin"?null:dept,role:role,avatar:name[0],color:color,customRoleLabel:customRoleLabel};
+  if(empEditId){await db.ref("users/"+empEditId).update(data);}
+  else{var newKey=db.ref("users").push().key;await db.ref("users/"+newKey).set(data);if(canLeave(role))await db.ref("quota/"+newKey).set(JSON.parse(JSON.stringify(DEFAULT_QUOTA)));}
   closeModal("emp-modal");
 }
 
+function changeRole(key,newRole){db.ref("users/"+key+"/role").set(newRole);}
 function openDelModal(key,name){delTargetId=key;$("del-emp-name").textContent=name;show("del-modal");}
 async function confirmDelete(){if(!delTargetId)return;await db.ref("users/"+delTargetId).remove();closeModal("del-modal");delTargetId=null;}
 function openQuotaModal(key){
