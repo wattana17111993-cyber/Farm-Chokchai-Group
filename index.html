@@ -600,7 +600,7 @@ function enterApp(user){
   $("hdr-dept").textContent=dTxt+sTxt;
   $("hdr-tenure").textContent=user.startDate?("อายุงาน "+calcTenure(user.startDate)):"";
   var rb=$("hdr-role-badge"); rb.className="role-badge";
-  var badge = user.customRoleLabel || ROLE_BADGE[user.role] || "";
+  var badge = user.role === "admin" ? (user.customRoleLabel || ROLE_BADGE[user.role] || "") : "";
   if(badge && user.role !== "admin"){
   rb.textContent=badge;
   rb.classList.add(ROLE_CLS[user.role]);
