@@ -601,11 +601,11 @@ function enterApp(user){
   $("hdr-tenure").textContent=user.startDate?("อายุงาน "+calcTenure(user.startDate)):"";
   var rb=$("hdr-role-badge"); rb.className="role-badge";
   var badge = user.customRoleLabel || ROLE_BADGE[user.role] || "";
-  if(badge){
-    rb.textContent=badge;
-    rb.classList.add(ROLE_CLS[user.role]);
-    rb.classList.remove("hidden");
-  } else rb.classList.add("hidden");
+  if(badge && user.role !== "admin"){
+  rb.textContent=badge;
+  rb.classList.add(ROLE_CLS[user.role]);
+  rb.classList.remove("hidden");
+} else rb.classList.add("hidden");
   var badge=ROLE_BADGE[user.role]||"";
   if(badge){rb.textContent=badge;rb.classList.add(ROLE_CLS[user.role]);rb.classList.remove("hidden");}
   else rb.classList.add("hidden");
