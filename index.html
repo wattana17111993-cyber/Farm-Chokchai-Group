@@ -324,8 +324,17 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
               <button class="subtab" onclick="adminStatusTab('all',this)">ทั้งหมด</button>
             </div>
           </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
             <input class="search-input" id="admin-search" placeholder="🔍 ค้นหา..." oninput="renderLeaves()">
+            <select id="admin-company-filter" class="search-input" onchange="renderLeaves()" style="cursor:pointer">
+              <option value="">🏢 ทุกบริษัท</option>
+              <option value="CRR">CRR — โชคชัยแรนช์รีสอร์ท</option>
+              <option value="CEC">CEC — โชคชัยเอ็นเตอร์เทนเม้นท์</option>
+              <option value="CDF">CDF — ฟาร์มโชคชัย</option>
+              <option value="CFR">CFR — โชคชัยฟู้ด แอนด์ เรสโทรองท์</option>
+              <option value="CFP">CFP — โชคชัยฟาร์มโปรดิวซ์</option>
+              <option value="CIC">CIC — โชคชัยอินเตอร์เนชั่นแนล</option>
+            </select>
             <button onclick="exportExcel()" style="padding:8px 12px;border-radius:8px;border:1.5px solid #d1fae5;background:#f0fdf4;color:#166534;font-size:12px;font-weight:600;cursor:pointer">⬇️ Excel</button>
             <button onclick="exportTigerSoft()" style="padding:8px 12px;border-radius:8px;border:1.5px solid #ddd6fe;background:#f5f3ff;color:#5b21b6;font-size:12px;font-weight:600;cursor:pointer">🐯 TigerSoft</button>
           </div>
@@ -1040,7 +1049,14 @@ function renderLeaves(){
   if(s0)s0.textContent="รออนุมัติ"+(stats.pending>0?" ("+stats.pending+")":"");
   $("admin-stats").innerHTML=renderStats(stats);
   var search=($("admin-search")||{value:""}).value||"";
-  var filtered=all.filter(function(h){return (adminLeaveTabState==="all"||h.status===adminLeaveTabState)&&(h.employee.includes(search)||h.label.includes(search)||(DEPTS[h.dept]&&DEPTS[h.dept].label.includes(search)));});
+  var companyFilter=($("admin-company-filter")||{value:""}).value||"";
+  var filtered=all.filter(function(h){
+    var matchText=(adminLeaveTabState==="all"||h.status===adminLeaveTabState)&&(h.employee.includes(search)||h.label.includes(search)||(DEPTS[h.dept]&&DEPTS[h.dept].label.includes(search)));
+    if(!matchText)return false;
+    if(!companyFilter)return true;
+    var empUser=usersData[h.userId];
+    return empUser&&empUser.company===companyFilter;
+  });
   $("admin-list").innerHTML=renderRows(filtered,"admin");
 }
 function renderStats(s){
