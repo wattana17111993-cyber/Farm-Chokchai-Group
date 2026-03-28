@@ -581,7 +581,7 @@ var STATUS_CFG={approved:{label:"อนุมัติแล้ว",cls:"b-appro
 var TYPE_CLS={sick_cert:"b-sick",sick:"b-sick",personal:"b-personal",comp:"b-personal",maternity:"b-maternity",special:"b-special",dayoff:"b-dayoff"};
 function typeIcon(t){for(var i=0;i<TYPES.length;i++){if(TYPES[i].id===t)return TYPES[i].icon;}return "";}
 function statusBadge(s){var c=STATUS_CFG[s]||{label:s,cls:"b-pending"};return "<span class=\"badge "+c.cls+"\">"+c.label+"</span>";}
-function typeBadge(t,d){return "<span class=\"badge "+(TYPE_CLS[t]||"b-personal")+"\" style=\"padding:2px 8px;border-radius:20px\">"+d+" วัน</span>";}
+function typeBadge(t,d,unit){return "<span class=\"badge "+(TYPE_CLS[t]||"b-personal")+"\" style=\"padding:2px 8px;border-radius:20px\">"+d+" "+(unit||"วัน")+"</span>";}
 function deptPill(did){if(!did)return "";var d=DEPTS[did]||DEPTS.other;return "<span class=\"dept-pill\" style=\"color:"+d.color+";background:"+d.bg+";border-color:"+d.border+"\">"+d.label+"</span>";}
 function companyPill(cid){if(!cid)return "";var c=COMPANIES[cid];if(!c)return "";return "<span class=\"company-pill\" style=\"color:"+c.color+";background:"+c.bg+";border-color:"+c.border+"\">"+c.short+"</span>";}
 function stamp(){var n=new Date();return n.getFullYear()+String(n.getMonth()+1).padStart(2,"0")+String(n.getDate()).padStart(2,"0");}
@@ -937,7 +937,7 @@ function buildQuotaCards(q){
 }
 function buildHistoryList(mine){
   if(!mine.length)return "<div class=\"empty\">ยังไม่มีประวัติการลา</div>";
-  return mine.map(function(item,i){return "<div class=\"row\" style=\""+(i===mine.length-1?"border-bottom:none":"")+"\">"+"<div class=\"row-icon\">"+typeIcon(item.type)+"</div>"+"<div class=\"row-info\"><div class=\"row-title\"><strong style=\"font-size:13px;font-weight:500;color:#1a1a1a\">"+item.label+"</strong>"+typeBadge(item.type,item.days)+"</div>"+"<div class=\"row-sub\">"+item.from+(item.days>1&&item.from!==item.to?" — "+item.to:"")+(item.timeRange?" · ⏰ "+item.timeRange:"")+(item.note?" · "+item.note:"")+"</div></div>"+statusBadge(item.status)+"</div>";}).join("");
+  return mine.map(function(item,i){return "<div class=\"row\" style=\""+(i===mine.length-1?"border-bottom:none":"")+"\">"+"<div class=\"row-icon\">"+typeIcon(item.type)+"</div>"+"<div class=\"row-info\"><div class=\"row-title\"><strong style=\"font-size:13px;font-weight:500;color:#1a1a1a\">"+item.label+"</strong>"+typeBadge(item.type,item.days,item.daysUnit)+"</div>"+"<div class=\"row-sub\">"+item.from+(item.days>1&&item.from!==item.to?" — "+item.to:"")+(item.timeRange?" · ⏰ "+item.timeRange:"")+(item.note?" · "+item.note:"")+"</div></div>"+statusBadge(item.status)+"</div>";}).join("");
 }
 function buildTypeButtons(elId,active,onClickOverride){
   var el=$(elId);if(!el||!currentUser)return;
@@ -980,9 +980,20 @@ async function submitLeave(prefix){
   var selPeriod=prefix==="mgr"?mgrSelectedPeriod:selectedPeriod;
   var timeSelected=$( (prefix==="mgr"?"mgr-":"")+"f-time-range-wrap");
   var usingTimeMode=timeSelected&&timeSelected.dataset.selected==="1";
-  var from, to;
+  var from, to, days;
   if(usingTimeMode){
     var sd=$(pre+"f-single-date");from=sd?sd.value:"";to=from;
+    // Calculate hours from time display
+    var dispId=pre+"f-time-display";
+    var dispEl=$(dispId);var timeRange2=dispEl?dispEl.textContent:"";
+    var tParts=timeRange2.split("—");
+    var hrs=0;
+    if(tParts.length===2){
+      var t1=tParts[0].trim().split(":");var t2=tParts[1].trim().split(":");
+      var mins=(parseInt(t2[0])*60+parseInt(t2[1]))-(parseInt(t1[0])*60+parseInt(t1[1]));
+      hrs=Math.round(mins/60*10)/10;if(hrs<0)hrs=0;
+    }
+    days=hrs;
   } else {
     from=$(pre+"f-from")?$(pre+"f-from").value:"";
     to=$(pre+"f-to")?$(pre+"f-to").value:"";
@@ -994,8 +1005,8 @@ async function submitLeave(prefix){
   if(!selType||!from)return;
   if(!isDayoff&&!isComp&&!usingTimeMode&&selPeriod==="full"&&!to)return;
   if(isDayoff&&!dayoffDate)return;if(isComp&&!compVal)return;
-  var isHalf=!isDayoff&&!isComp&&selPeriod!=="full";
-  var days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
+  var isHalf=!isDayoff&&!isComp&&!usingTimeMode&&selPeriod!=="full";
+  if(!usingTimeMode) days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
   var pLabel=selPeriod==="am"?" (ครึ่งวันเช้า)":selPeriod==="pm"?" (ครึ่งวันบ่าย)":"";
 
   // Time range — read from display label set by picker
@@ -1011,7 +1022,7 @@ async function submitLeave(prefix){
   else noteText=pLabel+(note?" "+note:"");
   var toDate=isDayoff?fmtDate(dayoffDate):isComp?fmtDate(from):isHalf?fmtDate(from):fmtDate(to);
   var typeObj=null;for(var i=0;i<TYPES.length;i++){if(TYPES[i].id===selType){typeObj=TYPES[i];break;}}
-  var rec={userId:currentUser._key,userRole:currentUser.role,employee:currentUser.name,dept:currentUser.dept,type:selType,label:typeObj?typeObj.label:selType,from:fmtDate(from),to:toDate,days:days,note:noteText,status:"pending",submitted:fmtDate(new Date().toISOString().slice(0,10)),createdAt:Date.now()};
+  var rec={userId:currentUser._key,userRole:currentUser.role,employee:currentUser.name,dept:currentUser.dept,type:selType,label:typeObj?typeObj.label:selType,from:fmtDate(from),to:toDate,days:days,daysUnit:usingTimeMode?"ชั่วโมง":"วัน",note:noteText,status:"pending",submitted:fmtDate(new Date().toISOString().slice(0,10)),createdAt:Date.now()};
   if(timeRange)rec.timeRange=timeRange;
   await refHistory().push(rec);
   if(prefix==="mgr"){mgrSelectedType="";mgrSelectedPeriod="full";}else{selectedType="";selectedPeriod="full";}
@@ -1069,17 +1080,17 @@ function renderRows(filtered,mode){
     var isLast=i===filtered.length-1;
     var canApp=mode==="admin"?true:canApproveTarget(currentUser.role,item.userRole||"employee");
     var actions="";
-    if(item.status==="pending"&&canApp)actions="<button class=\"btn-approve\" onclick=\"approveItem('"+item._key+"','"+item.userId+"','"+item.type+"',"+item.days+")\">อนุมัติ ✓</button> <button class=\"btn-reject-sm\" onclick=\"openReject('"+item._key+"')\">ปฏิเสธ ✕</button>";
+    if(item.status==="pending"&&canApp)actions="<button class=\"btn-approve\" onclick=\"approveItem('"+item._key+"','"+item.userId+"','"+item.type+"',"+item.days+",'"+( item.daysUnit||"วัน")+"')\">อนุมัติ ✓</button> <button class=\"btn-reject-sm\" onclick=\"openReject('"+item._key+"')\">ปฏิเสธ ✕</button>";
     else actions=statusBadge(item.status);
     if(currentUser.role==="admin")actions+=" <button class=\"btn-edit\" style=\"border-color:#bfdbfe;color:#1e40af\" onclick=\"openCancelModal('"+item._key+"')\">✏️</button>";
-    // Find user company from usersData
     var empUser=usersData[item.userId];var compTag=empUser&&empUser.company?companyPill(empUser.company):"";
-    return "<div class=\"row\" style=\""+(isLast?"border-bottom:none":"")+"\">"+"<div class=\"row-icon\">"+typeIcon(item.type)+"</div>"+"<div class=\"row-info\"><div class=\"row-title\"><strong style=\"font-size:13px;font-weight:600;color:#1a1a1a\">"+item.employee+"</strong>"+(mode==="admin"?deptPill(item.dept):"")+compTag+typeBadge(item.type,item.days)+"</div>"+"<div class=\"row-sub\">"+item.label+" · "+item.from+(item.days>1&&item.from!==item.to?" — "+item.to:"")+(item.timeRange?" · ⏰ "+item.timeRange:"")+(item.note?" · "+item.note:"")+"<span style=\"color:#ccc\"> · ยื่นเมื่อ "+item.submitted+"</span>"+(item.adminNote?"<span style=\"color:#7b1a1a\"> · "+item.adminNote+"</span>":"")+"</div></div>"+"<div style=\"display:flex;align-items:center;gap:6px;flex-shrink:0\">"+actions+"</div></div>";
+    return "<div class=\"row\" style=\""+(isLast?"border-bottom:none":"")+"\">"+"<div class=\"row-icon\">"+typeIcon(item.type)+"</div>"+"<div class=\"row-info\"><div class=\"row-title\"><strong style=\"font-size:13px;font-weight:600;color:#1a1a1a\">"+item.employee+"</strong>"+(mode==="admin"?deptPill(item.dept):"")+compTag+typeBadge(item.type,item.days,item.daysUnit)+"</div>"+"<div class=\"row-sub\">"+item.label+" · "+item.from+(item.days>1&&item.from!==item.to?" — "+item.to:"")+(item.timeRange?" · ⏰ "+item.timeRange:"")+(item.note?" · "+item.note:"")+"<span style=\"color:#ccc\"> · ยื่นเมื่อ "+item.submitted+"</span>"+(item.adminNote?"<span style=\"color:#7b1a1a\"> · "+item.adminNote+"</span>":"")+"</div></div>"+"<div style=\"display:flex;align-items:center;gap:6px;flex-shrink:0\">"+actions+"</div></div>";
   }).join("");
 }
 
-async function approveItem(key,userId,type,days){
+async function approveItem(key,userId,type,days,unit){
   await refHistory().child(key+"/status").set("approved");
+  if(unit==="ชั่วโมง")return; // hours don't deduct quota days
   var q=getUserQuota(userId);var cur=q[type]||{used:0,total:0};
   await refQuota().child(userId+"/"+type+"/used").set((cur.used||0)+Number(days));
 }
