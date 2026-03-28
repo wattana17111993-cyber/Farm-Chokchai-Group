@@ -212,9 +212,9 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="period-am" onclick="setPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="period-pm" onclick="setPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <!-- TIME RANGE button inline (shown for sick_cert, personal, sick) -->
-            <button type="button" id="f-time-range-wrap" onclick="openTimePicker('emp')" class="hidden" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
+            <button type="button" id="f-time-range-wrap" onclick="openTimePicker('emp')" class="hidden" data-selected="0" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
               <div style="font-size:18px;margin-bottom:2px">⏰</div>
-              <div style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
+              <div class="time-btn-label" style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
               <div id="f-time-display" style="font-size:10px;color:#bbb;margin-top:2px;line-height:1.3">08:00—17:00</div>
             </button>
           </div>
@@ -271,9 +271,9 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="mgr-period-am" onclick="mgrSetPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="mgr-period-pm" onclick="mgrSetPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <!-- TIME RANGE button inline for manager -->
-            <button type="button" id="mgr-f-time-range-wrap" onclick="openTimePicker('mgr')" class="hidden" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
+            <button type="button" id="mgr-f-time-range-wrap" onclick="openTimePicker('mgr')" class="hidden" data-selected="0" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
               <div style="font-size:18px;margin-bottom:2px">⏰</div>
-              <div style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
+              <div class="time-btn-label" style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
               <div id="mgr-f-time-display" style="font-size:10px;color:#bbb;margin-top:2px;line-height:1.3">08:00—17:00</div>
             </button>
           </div>
@@ -735,31 +735,46 @@ function buildHolidayDropdown(year,selId){
 }
 
 // ── Time range helpers ─────────────────────────────────────────────
-var timePickerPrefix = "emp"; // which form opened the picker
+var timePickerPrefix = "emp";
 
 function showTimeRange(prefix){
   var t = prefix==="mgr" ? mgrSelectedType : selectedType;
   var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
   if(TIME_RANGE_TYPES.indexOf(t)>=0) show(wrapId);
-  else hide(wrapId);
+  else { resetTimeBtn(prefix); hide(wrapId); }
+}
+function resetTimeBtn(prefix){
+  var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
+  var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
+  var btn=$(wrapId);if(!btn)return;
+  btn.style.background="#fff";btn.style.borderColor="#e8e8e8";btn.dataset.selected="0";
+  var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#555";
+  var disp=$(dispId);if(disp){disp.textContent="08:00—17:00";disp.style.color="#bbb";}
 }
 function openTimePicker(prefix){
-  timePickerPrefix = prefix;
+  timePickerPrefix=prefix;
+  var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
   var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
-  var disp = $(dispId) ? $(dispId).textContent : "08:00 — 17:00 น.";
-  var parts = disp.replace(" น.","").split(" — ");
-  $("tp-start").value = parts[0] || "08:00";
-  $("tp-end").value   = parts[1] || "17:00";
+  var btn=$(wrapId);
+  // If already selected, clicking again deselects
+  if(btn && btn.dataset.selected==="1"){resetTimeBtn(prefix);return;}
+  var disp=$(dispId)?$(dispId).textContent:"08:00—17:00";
+  var parts=disp.split("—");
+  $("tp-start").value=(parts[0]||"08:00").trim();
+  $("tp-end").value=(parts[1]||"17:00").trim();
   show("time-picker-modal");
 }
 function confirmTimePicker(){
-  var s = $("tp-start").value || "08:00";
-  var e = $("tp-end").value   || "17:00";
-  var label = s + " — " + e + " น.";
-  var dispId = timePickerPrefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
-  var trigId = timePickerPrefix==="mgr" ? "mgr-f-time-trigger" : "f-time-trigger";
-  if($(dispId)) $(dispId).textContent = label;
-  if($(trigId)) $(trigId).style.borderColor = "#1a1a1a";
+  var s=$("tp-start").value||"08:00";
+  var e=$("tp-end").value||"17:00";
+  var dispId=timePickerPrefix==="mgr"?"mgr-f-time-display":"f-time-display";
+  var wrapId=timePickerPrefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
+  var disp=$(dispId);if(disp){disp.textContent=s+"—"+e;disp.style.color="#aaa";}
+  var btn=$(wrapId);
+  if(btn){
+    btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";
+    var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#fff";
+  }
   closeModal("time-picker-modal");
 }
 
@@ -937,8 +952,7 @@ async function submitLeave(prefix){
   var lf=$(pre+"label-from");if(lf)lf.textContent="วันที่เริ่มต้น";
   [pre+"dayoff-extra",pre+"comp-extra",pre+"f-time-range-wrap"].forEach(function(id){var e=$(id);if(e)e.classList.add("hidden");});
   // Reset time display
-  var dispEl=$(pre+"f-time-display");if(dispEl)dispEl.textContent="08:00 — 17:00 น.";
-  var trigEl=$(pre+"f-time-trigger");if(trigEl)trigEl.style.borderColor="#e8e8e8";
+  resetTimeBtn(prefix==="mgr"?"mgr":"emp");
   ["full","am","pm"].forEach(function(id){var b=$(pre+"period-"+id);if(!b)return;var a=id==="full";b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";b.querySelectorAll("div").forEach(function(e){e.style.color=a?"#fff":"";});});
   buildTypeButtons(pre+"type-btns",prefix==="mgr"?mgrSelectedType:selectedType,null);
   if(prefix==="mgr"){mgrUpdateSubmitBtn();show("mgr-leave-success");setTimeout(function(){hide("mgr-leave-success");},3000);renderMgrOverview();}
