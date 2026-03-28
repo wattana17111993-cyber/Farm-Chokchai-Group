@@ -192,6 +192,7 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
         <div class="grid2">
           <div><label class="field-label" id="label-from">วันที่เริ่มต้น</label><input type="date" id="f-from" class="field-input"></div>
           <div id="f-to-wrap"><label class="field-label">วันที่สิ้นสุด</label><input type="date" id="f-to" class="field-input"></div>
+          <div id="f-single-date-wrap" class="hidden"><label class="field-label">วันที่ลา</label><input type="date" id="f-single-date" class="field-input"></div>
         </div>
         <div id="dayoff-extra" class="hidden" style="margin-bottom:16px">
           <label class="field-label">วันที่ขอหยุด</label><input type="date" id="f-dayoff" class="field-input">
@@ -251,6 +252,7 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
         <div class="grid2">
           <div><label class="field-label" id="mgr-label-from">วันที่เริ่มต้น</label><input type="date" id="mgr-f-from" class="field-input"></div>
           <div id="mgr-f-to-wrap"><label class="field-label">วันที่สิ้นสุด</label><input type="date" id="mgr-f-to" class="field-input"></div>
+          <div id="mgr-f-single-date-wrap" class="hidden"><label class="field-label">วันที่ลา</label><input type="date" id="mgr-f-single-date" class="field-input"></div>
         </div>
         <div id="mgr-dayoff-extra" class="hidden" style="margin-bottom:16px">
           <label class="field-label">วันที่ขอหยุด</label><input type="date" id="mgr-f-dayoff" class="field-input">
@@ -655,8 +657,8 @@ document.addEventListener("DOMContentLoaded",function(){
   var iu=$("inp-user"),ip=$("inp-pw");
   if(iu)iu.addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
   if(ip)ip.addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
-  ["f-from","f-to"].forEach(function(id){var e=$(id);if(e)e.addEventListener("change",updateSubmitBtn);});
-  ["mgr-f-from","mgr-f-to"].forEach(function(id){var e=$(id);if(e)e.addEventListener("change",mgrUpdateSubmitBtn);});
+  ["f-from","f-to","f-single-date"].forEach(function(id){var e=$(id);if(e)e.addEventListener("change",updateSubmitBtn);});
+  ["mgr-f-from","mgr-f-to","mgr-f-single-date"].forEach(function(id){var e=$(id);if(e)e.addEventListener("change",mgrUpdateSubmitBtn);});
 });
 
 async function doLogin(){
@@ -737,6 +739,21 @@ function buildHolidayDropdown(year,selId){
 // ── Time range helpers ─────────────────────────────────────────────
 var timePickerPrefix = "emp";
 
+function applySingleDate(fromId,toId,toWrapId,singleWrapId,singleId){
+  // Hide from+to, show single date
+  var fw=$(fromId);if(fw)fw.closest("div").style.display="none";
+  var tw=$(toWrapId);if(tw)tw.style.display="none";
+  var sw=$(singleWrapId);if(sw)sw.classList.remove("hidden");
+}
+function removeSingleDate(prefix){
+  var pre=prefix==="mgr"?"mgr-":"";
+  var fw=$(pre+"f-from");if(fw){fw.closest("div").style.display="";}
+  var tw=$(pre+"f-to-wrap");
+  var sp=prefix==="mgr"?mgrSelectedPeriod:selectedPeriod;
+  if(tw)tw.style.display=(sp==="full")?"":"none";
+  var sw=$(pre+"f-single-date-wrap");if(sw)sw.classList.add("hidden");
+  var sd=$(pre+"f-single-date");if(sd)sd.value="";
+}
 function showTimeRange(prefix){
   var t = prefix==="mgr" ? mgrSelectedType : selectedType;
   var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
@@ -756,7 +773,7 @@ function openTimePicker(prefix){
   var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
   var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
   var btn=$(wrapId);
-  // If already selected, clicking again deselects
+  // Toggle off if already selected
   if(btn && btn.dataset.selected==="1"){resetTimeBtn(prefix);return;}
   var disp=$(dispId)?$(dispId).textContent:"08:00—17:00";
   var parts=disp.split("—");
@@ -769,12 +786,24 @@ function confirmTimePicker(){
   var e=$("tp-end").value||"17:00";
   var dispId=timePickerPrefix==="mgr"?"mgr-f-time-display":"f-time-display";
   var wrapId=timePickerPrefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
+  var pre=timePickerPrefix==="mgr"?"mgr-":"";
+  // Deselect all period buttons
+  var ids=timePickerPrefix==="mgr"
+    ?["mgr-period-full","mgr-period-am","mgr-period-pm"]
+    :["period-full","period-am","period-pm"];
+  ids.forEach(function(id){
+    var b=$(id);if(!b)return;
+    b.style.background="#fff";b.style.borderColor="#e8e8e8";
+    b.querySelectorAll("div").forEach(function(el){el.style.color="";});
+  });
+  // Hide to-wrap
+  var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="none";
   var disp=$(dispId);if(disp){disp.textContent=s+"—"+e;disp.style.color="#aaa";}
   var btn=$(wrapId);
-  if(btn){
-    btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";
-    var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#fff";
-  }
+  if(btn){btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";
+    var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#fff";}
+  // Switch to single-date mode
+  applySingleDate(pre+"f-from",pre+"f-to",pre+"f-to-wrap",pre+"f-single-date-wrap",pre+"f-single-date");
   closeModal("time-picker-modal");
 }
 
@@ -801,10 +830,13 @@ function renderEmployee(){
 }
 function updateSubmitBtn(){
   var el=$("btn-submit-leave");if(!el)return;
-  var from=$("f-from")?$("f-from").value:"",to=$("f-to")?$("f-to").value:"";
+  var timeMode=$("f-time-range-wrap")&&$("f-time-range-wrap").dataset.selected==="1";
+  var from=timeMode?($("f-single-date")?$("f-single-date").value:""):($("f-from")?$("f-from").value:"");
+  var to=$("f-to")?$("f-to").value:"";
   var dayoff=$("f-dayoff")?$("f-dayoff").value:"",comp=$("f-comp-holiday")?$("f-comp-holiday").value:"";
   if(selectedType==="dayoff")el.disabled=!from||!dayoff;
   else if(selectedType==="comp")el.disabled=!from||!comp;
+  else if(timeMode)el.disabled=!selectedType||!from;
   else el.disabled=!selectedType||!from||(selectedPeriod==="full"&&!to);
 }
 function selectType(id){
@@ -812,7 +844,14 @@ function selectType(id){
   handleTypeSelect(id,"f-from","f-to","f-to-wrap","label-from","f-dayoff","dayoff-extra","comp-extra","f-comp-holiday",updateSubmitBtn);
   showTimeRange("emp");updateSubmitBtn();
 }
-function setPeriod(p){selectedPeriod=p;applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");updateSubmitBtn();}
+function setPeriod(p){
+  selectedPeriod=p;
+  // Deselect time button when choosing a period
+  resetTimeBtn("emp");
+  removeSingleDate("emp");
+  applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");
+  updateSubmitBtn();
+}
 function selectHolidayYear(y){selectedHolidayYear=y;setYearBtn(y,"btn-year-68","btn-year-69");buildHolidayDropdown(y,"f-comp-holiday");updateSubmitBtn();}
 
 // ── Manager ────────────────────────────────────────────────────────
@@ -864,13 +903,23 @@ function mgrSelectType(id){
 }
 function mgrUpdateSubmitBtn(){
   var el=$("mgr-btn-submit-leave");if(!el)return;
-  var from=$("mgr-f-from")?$("mgr-f-from").value:"",to=$("mgr-f-to")?$("mgr-f-to").value:"";
+  var timeMode=$("mgr-f-time-range-wrap")&&$("mgr-f-time-range-wrap").dataset.selected==="1";
+  var from=timeMode?($("mgr-f-single-date")?$("mgr-f-single-date").value:""):($("mgr-f-from")?$("mgr-f-from").value:"");
+  var to=$("mgr-f-to")?$("mgr-f-to").value:"";
   var dayoff=$("mgr-f-dayoff")?$("mgr-f-dayoff").value:"",comp=$("mgr-f-comp-holiday")?$("mgr-f-comp-holiday").value:"";
   if(mgrSelectedType==="dayoff")el.disabled=!from||!dayoff;
   else if(mgrSelectedType==="comp")el.disabled=!from||!comp;
+  else if(timeMode)el.disabled=!mgrSelectedType||!from;
   else el.disabled=!mgrSelectedType||!from||(mgrSelectedPeriod==="full"&&!to);
 }
-function mgrSetPeriod(p){mgrSelectedPeriod=p;applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");mgrUpdateSubmitBtn();}
+function mgrSetPeriod(p){
+  mgrSelectedPeriod=p;
+  // Deselect time button when choosing a period
+  resetTimeBtn("mgr");
+  removeSingleDate("mgr");
+  applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");
+  mgrUpdateSubmitBtn();
+}
 function mgrSelectHolidayYear(y){mgrSelectedHolidayYear=y;setYearBtn(y,"mgr-btn-year-68","mgr-btn-year-69");buildHolidayDropdown(y,"mgr-f-comp-holiday");mgrUpdateSubmitBtn();}
 
 // ── Shared helpers ─────────────────────────────────────────────────
@@ -888,9 +937,8 @@ function buildTypeButtons(elId,active,onClickOverride){
   var html="<div style=\"display:grid;grid-template-columns:repeat(3,1fr);gap:10px\">";
   TYPES.forEach(function(t){
     var qv=q[t.id]||{used:0,total:0};var a=active===t.id;
-    var hasTime=TIME_RANGE_TYPES.indexOf(t.id)>=0;
     var rem=qv.total>0?("เหลือ "+(qv.total-qv.used)+" วัน"):"เหลือ 0 วัน";
-    html+="<button onclick=\""+(clickFn?clickFn+"('"+t.id+"')":"")+"\" style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border-radius:14px;border:1.5px solid "+(a?"#1a1a1a":"#eee")+";background:"+(a?"#1a1a1a":"#fff")+";cursor:pointer;box-sizing:border-box;width:100%;text-align:center;position:relative\"><div style=\"font-size:22px;margin-bottom:8px\">"+t.icon+"</div><div style=\"font-size:11px;color:"+(a?"#ccc":"#888")+";margin-bottom:4px;line-height:1.3\">"+t.label+"</div><div style=\"font-size:11px;color:"+(a?"#aaa":"#bbb")+"\">"+rem+"</div>"+(hasTime?"<div style=\"position:absolute;top:6px;right:7px;font-size:10px;color:"+(a?"#aaa":"#bbb")+"\">⏰</div>":"")+"</button>";
+    html+="<button onclick=\""+(clickFn?clickFn+"('"+t.id+"')":"")+"\" style=\"display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 8px;border-radius:14px;border:1.5px solid "+(a?"#1a1a1a":"#eee")+";background:"+(a?"#1a1a1a":"#fff")+";cursor:pointer;box-sizing:border-box;width:100%;text-align:center\"><div style=\"font-size:22px;margin-bottom:8px\">"+t.icon+"</div><div style=\"font-size:11px;color:"+(a?"#ccc":"#888")+";margin-bottom:4px;line-height:1.3\">"+t.label+"</div><div style=\"font-size:11px;color:"+(a?"#aaa":"#bbb")+"\">"+rem+"</div></button>";
   });
   html+="</div>";el.innerHTML=html;
 }
@@ -902,9 +950,14 @@ function handleTypeSelect(id,fromId,toId,toWrapId,labelFromId,dayoffId,dayoffExt
   if(updateFn)updateFn();
 }
 function applyPeriod(p,fullId,amId,pmId,toWrapId,fromId,toId){
-  [fullId,amId,pmId].forEach(function(id){var b=$(id);if(!b)return;var a=(id===fullId&&p==="full")||(id===amId&&p==="am")||(id===pmId&&p==="pm");b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";b.querySelectorAll("div").forEach(function(e){e.style.color=a?"#fff":"";});});
+  // Single select: only the chosen one is active
+  [[fullId,"full"],[amId,"am"],[pmId,"pm"]].forEach(function(pair){
+    var b=$(pair[0]);if(!b)return;var a=p===pair[1];
+    b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";
+    b.querySelectorAll("div").forEach(function(el){el.style.color=a?"#fff":"";});
+  });
   var tw=$(toWrapId);if(tw)tw.style.display=p==="full"?"":"none";
-  if(p!=="full"){var ft=$(toId);if(ft)ft.value=$(fromId).value;}
+  if(p!=="full"){var ft=$(toId);if(ft)ft.value=$(fromId)?$(fromId).value:"";}
 }
 function setYearBtn(y,id68,id69){
   var b68=$(id68),b69=$(id69);
@@ -916,14 +969,21 @@ async function submitLeave(prefix){
   var pre=prefix==="mgr"?"mgr-":"";
   var selType=prefix==="mgr"?mgrSelectedType:selectedType;
   var selPeriod=prefix==="mgr"?mgrSelectedPeriod:selectedPeriod;
-  var from=$(pre+"f-from")?$(pre+"f-from").value:"";
-  var to=$(pre+"f-to")?$(pre+"f-to").value:"";
+  var timeSelected=$( (prefix==="mgr"?"mgr-":"")+"f-time-range-wrap");
+  var usingTimeMode=timeSelected&&timeSelected.dataset.selected==="1";
+  var from, to;
+  if(usingTimeMode){
+    var sd=$(pre+"f-single-date");from=sd?sd.value:"";to=from;
+  } else {
+    from=$(pre+"f-from")?$(pre+"f-from").value:"";
+    to=$(pre+"f-to")?$(pre+"f-to").value:"";
+  }
   var note=$(pre+"f-note")?$(pre+"f-note").value:"";
   var isDayoff=selType==="dayoff",isComp=selType==="comp";
   var dayoffDate=isDayoff?$(pre+"f-dayoff").value:null;
   var compVal=isComp&&$(pre+"f-comp-holiday")?$(pre+"f-comp-holiday").value:"";
   if(!selType||!from)return;
-  if(!isDayoff&&!isComp&&selPeriod==="full"&&!to)return;
+  if(!isDayoff&&!isComp&&!usingTimeMode&&selPeriod==="full"&&!to)return;
   if(isDayoff&&!dayoffDate)return;if(isComp&&!compVal)return;
   var isHalf=!isDayoff&&!isComp&&selPeriod!=="full";
   var days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
@@ -931,9 +991,9 @@ async function submitLeave(prefix){
 
   // Time range — read from display label set by picker
   var timeRange="";
-  if(TIME_RANGE_TYPES.indexOf(selType)>=0){
+  if(usingTimeMode){
     var dispEl=$(pre+"f-time-display");
-    if(dispEl){var dv=dispEl.textContent||"";if(dv&&dv!=="08:00 — 17:00 น."||dv)timeRange=dv;}
+    if(dispEl)timeRange=dispEl.textContent||"";
   }
 
   var noteText="";
@@ -946,13 +1006,15 @@ async function submitLeave(prefix){
   if(timeRange)rec.timeRange=timeRange;
   await refHistory().push(rec);
   if(prefix==="mgr"){mgrSelectedType="";mgrSelectedPeriod="full";}else{selectedType="";selectedPeriod="full";}
-  [pre+"f-from",pre+"f-to",pre+"f-note",pre+"f-dayoff"].forEach(function(id){var e=$(id);if(e)e.value="";});
+  [pre+"f-from",pre+"f-to",pre+"f-note",pre+"f-dayoff",pre+"f-single-date"].forEach(function(id){var e=$(id);if(e)e.value="";});
   var ch=$(pre+"f-comp-holiday");if(ch)ch.value="";
   var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="";
   var lf=$(pre+"label-from");if(lf)lf.textContent="วันที่เริ่มต้น";
   [pre+"dayoff-extra",pre+"comp-extra",pre+"f-time-range-wrap"].forEach(function(id){var e=$(id);if(e)e.classList.add("hidden");});
   // Reset time display
   resetTimeBtn(prefix==="mgr"?"mgr":"emp");
+  // Restore date fields visibility
+  removeSingleDate(prefix==="mgr"?"mgr":"emp");
   ["full","am","pm"].forEach(function(id){var b=$(pre+"period-"+id);if(!b)return;var a=id==="full";b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";b.querySelectorAll("div").forEach(function(e){e.style.color=a?"#fff":"";});});
   buildTypeButtons(pre+"type-btns",prefix==="mgr"?mgrSelectedType:selectedType,null);
   if(prefix==="mgr"){mgrUpdateSubmitBtn();show("mgr-leave-success");setTimeout(function(){hide("mgr-leave-success");},3000);renderMgrOverview();}
