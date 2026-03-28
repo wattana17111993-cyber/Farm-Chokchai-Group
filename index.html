@@ -193,15 +193,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <div><label class="field-label" id="label-from">วันที่เริ่มต้น</label><input type="date" id="f-from" class="field-input"></div>
           <div id="f-to-wrap"><label class="field-label">วันที่สิ้นสุด</label><input type="date" id="f-to" class="field-input"></div>
         </div>
-        <!-- TIME RANGE (shown for sick_cert, personal, sick) -->
-        <div id="f-time-range-wrap" class="hidden" style="margin-bottom:16px">
-          <label class="field-label">ช่วงเวลา (เวลาเริ่ม — เวลาสิ้นสุด)</label>
-          <div class="time-range-row">
-            <input type="time" id="f-time-start" value="08:00">
-            <span class="time-range-sep">—</span>
-            <input type="time" id="f-time-end" value="17:00">
-          </div>
-        </div>
         <div id="dayoff-extra" class="hidden" style="margin-bottom:16px">
           <label class="field-label">วันที่ขอหยุด</label><input type="date" id="f-dayoff" class="field-input">
         </div>
@@ -220,6 +211,12 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="period-full" onclick="setPeriod('full')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #1a1a1a;background:#1a1a1a;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">📅</div><div style="font-size:12px;font-weight:500;color:#fff">เต็มวัน</div></button>
             <button id="period-am" onclick="setPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="period-pm" onclick="setPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
+            <!-- TIME RANGE button inline (shown for sick_cert, personal, sick) -->
+            <button type="button" id="f-time-range-wrap" onclick="openTimePicker('emp')" class="hidden" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
+              <div style="font-size:18px;margin-bottom:2px">⏰</div>
+              <div style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
+              <div id="f-time-display" style="font-size:10px;color:#bbb;margin-top:2px;line-height:1.3">08:00—17:00</div>
+            </button>
           </div>
         </div>
         <div style="margin-bottom:20px"><label class="field-label">หมายเหตุ (ถ้ามี)</label><textarea id="f-note" class="field-input" rows="3" placeholder="ระบุเหตุผล..." style="resize:none"></textarea></div>
@@ -255,15 +252,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <div><label class="field-label" id="mgr-label-from">วันที่เริ่มต้น</label><input type="date" id="mgr-f-from" class="field-input"></div>
           <div id="mgr-f-to-wrap"><label class="field-label">วันที่สิ้นสุด</label><input type="date" id="mgr-f-to" class="field-input"></div>
         </div>
-        <!-- TIME RANGE for manager -->
-        <div id="mgr-f-time-range-wrap" class="hidden" style="margin-bottom:16px">
-          <label class="field-label">ช่วงเวลา (เวลาเริ่ม — เวลาสิ้นสุด)</label>
-          <div class="time-range-row">
-            <input type="time" id="mgr-f-time-start" value="08:00">
-            <span class="time-range-sep">—</span>
-            <input type="time" id="mgr-f-time-end" value="17:00">
-          </div>
-        </div>
         <div id="mgr-dayoff-extra" class="hidden" style="margin-bottom:16px">
           <label class="field-label">วันที่ขอหยุด</label><input type="date" id="mgr-f-dayoff" class="field-input">
         </div>
@@ -282,6 +270,12 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="mgr-period-full" onclick="mgrSetPeriod('full')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #1a1a1a;background:#1a1a1a;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">📅</div><div style="font-size:12px;font-weight:500;color:#fff">เต็มวัน</div></button>
             <button id="mgr-period-am" onclick="mgrSetPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="mgr-period-pm" onclick="mgrSetPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
+            <!-- TIME RANGE button inline for manager -->
+            <button type="button" id="mgr-f-time-range-wrap" onclick="openTimePicker('mgr')" class="hidden" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
+              <div style="font-size:18px;margin-bottom:2px">⏰</div>
+              <div style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
+              <div id="mgr-f-time-display" style="font-size:10px;color:#bbb;margin-top:2px;line-height:1.3">08:00—17:00</div>
+            </button>
           </div>
         </div>
         <div style="margin-bottom:20px"><label class="field-label">หมายเหตุ (ถ้ามี)</label><textarea id="mgr-f-note" class="field-input" rows="3" placeholder="ระบุเหตุผล..." style="resize:none"></textarea></div>
@@ -429,6 +423,26 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
   <div class="modal" style="max-width:500px"><h3>จัดการวันลา</h3><p id="quota-modal-name" style="font-size:13px;color:#777;margin-bottom:16px"></p>
     <div id="quota-fields" style="display:flex;flex-direction:column;gap:10px"></div>
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('quota-modal')">ยกเลิก</button><button class="btn-confirm" onclick="saveQuota()">บันทึก</button></div>
+  </div>
+</div>
+<!-- Time Picker Modal -->
+<div id="time-picker-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:320px">
+    <h3>⏰ ระบุช่วงเวลา</h3>
+    <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:4px">
+      <div>
+        <label class="field-label">เวลาเริ่มต้น</label>
+        <input type="time" id="tp-start" class="field-input" value="08:00" style="font-size:20px;text-align:center;padding:12px">
+      </div>
+      <div>
+        <label class="field-label">เวลาสิ้นสุด</label>
+        <input type="time" id="tp-end" class="field-input" value="17:00" style="font-size:20px;text-align:center;padding:12px">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('time-picker-modal')">ยกเลิก</button>
+      <button class="btn-confirm" onclick="confirmTimePicker()">ตกลง</button>
+    </div>
   </div>
 </div>
 <div id="del-modal" class="modal-overlay hidden">
@@ -721,12 +735,32 @@ function buildHolidayDropdown(year,selId){
 }
 
 // ── Time range helpers ─────────────────────────────────────────────
+var timePickerPrefix = "emp"; // which form opened the picker
+
 function showTimeRange(prefix){
-  // Show time range only for sick_cert, personal, sick
   var t = prefix==="mgr" ? mgrSelectedType : selectedType;
   var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
   if(TIME_RANGE_TYPES.indexOf(t)>=0) show(wrapId);
   else hide(wrapId);
+}
+function openTimePicker(prefix){
+  timePickerPrefix = prefix;
+  var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
+  var disp = $(dispId) ? $(dispId).textContent : "08:00 — 17:00 น.";
+  var parts = disp.replace(" น.","").split(" — ");
+  $("tp-start").value = parts[0] || "08:00";
+  $("tp-end").value   = parts[1] || "17:00";
+  show("time-picker-modal");
+}
+function confirmTimePicker(){
+  var s = $("tp-start").value || "08:00";
+  var e = $("tp-end").value   || "17:00";
+  var label = s + " — " + e + " น.";
+  var dispId = timePickerPrefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
+  var trigId = timePickerPrefix==="mgr" ? "mgr-f-time-trigger" : "f-time-trigger";
+  if($(dispId)) $(dispId).textContent = label;
+  if($(trigId)) $(trigId).style.borderColor = "#1a1a1a";
+  closeModal("time-picker-modal");
 }
 
 // ── Employee ───────────────────────────────────────────────────────
@@ -880,11 +914,11 @@ async function submitLeave(prefix){
   var days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
   var pLabel=selPeriod==="am"?" (ครึ่งวันเช้า)":selPeriod==="pm"?" (ครึ่งวันบ่าย)":"";
 
-  // Time range
+  // Time range — read from display label set by picker
   var timeRange="";
   if(TIME_RANGE_TYPES.indexOf(selType)>=0){
-    var ts=$(pre+"f-time-start"),te=$(pre+"f-time-end");
-    if(ts&&te&&ts.value&&te.value)timeRange=ts.value+" — "+te.value+" น.";
+    var dispEl=$(pre+"f-time-display");
+    if(dispEl){var dv=dispEl.textContent||"";if(dv&&dv!=="08:00 — 17:00 น."||dv)timeRange=dv;}
   }
 
   var noteText="";
@@ -902,6 +936,9 @@ async function submitLeave(prefix){
   var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="";
   var lf=$(pre+"label-from");if(lf)lf.textContent="วันที่เริ่มต้น";
   [pre+"dayoff-extra",pre+"comp-extra",pre+"f-time-range-wrap"].forEach(function(id){var e=$(id);if(e)e.classList.add("hidden");});
+  // Reset time display
+  var dispEl=$(pre+"f-time-display");if(dispEl)dispEl.textContent="08:00 — 17:00 น.";
+  var trigEl=$(pre+"f-time-trigger");if(trigEl)trigEl.style.borderColor="#e8e8e8";
   ["full","am","pm"].forEach(function(id){var b=$(pre+"period-"+id);if(!b)return;var a=id==="full";b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";b.querySelectorAll("div").forEach(function(e){e.style.color=a?"#fff":"";});});
   buildTypeButtons(pre+"type-btns",prefix==="mgr"?mgrSelectedType:selectedType,null);
   if(prefix==="mgr"){mgrUpdateSubmitBtn();show("mgr-leave-success");setTimeout(function(){hide("mgr-leave-success");},3000);renderMgrOverview();}
