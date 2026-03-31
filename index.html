@@ -1150,14 +1150,167 @@ async function saveEmployee(){
 function changeRole(key,newRole){refUser(key).update({role:newRole,color:ROLE_COLOR[newRole]||"#1a1a1a"});}
 function openDelModal(key,name){delTargetId=key;$("del-emp-name").textContent=name;show("del-modal");}
 async function confirmDelete(){if(!delTargetId)return;await refUser(delTargetId).remove();closeModal("del-modal");delTargetId=null;}
+// ── Allowed comp holidays per user ────────────────────────────────
+function refAllowedHolidays(uid){return db.ref(branchPath("allowedHolidays/"+uid));}
+var allowedHolidaysData={};
+// listen alongside other listeners
+var _origStartListeners=startListeners;
+startListeners=function(){
+  _origStartListeners();
+  db.ref(branchPath("allowedHolidays")).on("value",function(s){allowedHolidaysData=s.val()||{};refreshViews();});
+};
+var _origStopListeners=stopListeners;
+stopListeners=function(){
+  _origStopListeners();
+  if(currentBranch)db.ref(currentBranch+"/allowedHolidays").off();
+};
+function getUserAllowedHolidays(uid){
+  // null = all allowed (not configured yet), {} = none allowed
+  return allowedHolidaysData[uid]||null;
+}
+function isHolidayAllowedForUser(uid,dateStr){
+  var allowed=getUserAllowedHolidays(uid);
+  if(allowed===null)return true; // no restriction set = all allowed
+  return !!allowed[dateStr];
+}
+
+// Override buildHolidayDropdown to also respect admin-set allowed holidays
+var _buildHolidayDropdownOrig=buildHolidayDropdown;
+buildHolidayDropdown=function(year,selId,uid){
+  var oldSel=$(selId);if(!oldSel)return;
+  var newSel=document.createElement("select");
+  newSel.id=selId;newSel.className="field-input";
+  newSel.onchange=selId==="mgr-f-comp-holiday"?mgrUpdateSubmitBtn:updateSubmitBtn;
+  var def=document.createElement("option");def.value="";def.textContent="-- เลือกวันหยุดนักขัตฤกษ์ --";newSel.appendChild(def);
+  var list=year===2569?H2569:H2568;
+  var targetUid=uid||(currentUser?currentUser._key:null);
+  var usedDates=targetUid?getUsedCompHolidayDates(targetUid):new Set();
+  var allowed=targetUid?getUserAllowedHolidays(targetUid):null;
+  list.forEach(function(h){
+    var p=h.date.split("-");
+    var opt=document.createElement("option");
+    opt.value=h.date+"|"+h.day+"|"+h.name;
+    var label=h.name+" — "+h.day+" "+parseInt(p[2])+" "+MONTHS[parseInt(p[1])]+" "+year;
+    var isAllowed=(allowed===null)||!!(allowed&&allowed[h.date]);
+    var isUsed=usedDates.has(h.date);
+    if(isUsed){
+      opt.disabled=true;opt.textContent="✓ ใช้แล้ว — "+label;opt.style.color="#bbb";
+    } else if(!isAllowed){
+      opt.disabled=true;opt.textContent="🔒 ไม่ได้รับสิทธิ์ — "+label;opt.style.color="#bbb";
+    } else {
+      opt.textContent=label;
+    }
+    newSel.appendChild(opt);
+  });
+  oldSel.parentNode.replaceChild(newSel,oldSel);
+};
+
+// ── Quota modal with holiday permission tab ────────────────────────
+var quotaModalTab="quota"; // "quota" | "holidays"
 function openQuotaModal(key){
-  quotaEditId=key;var u=usersData[key];if(!u)return;
+  quotaEditId=key;quotaModalTab="quota";var u=usersData[key];if(!u)return;
   $("quota-modal-name").textContent="👤 "+u.name+" · "+(u.position||"")+" · "+((DEPTS[u.dept]&&DEPTS[u.dept].label)||"");
-  var q=getUserQuota(key);
-  $("quota-fields").innerHTML=TYPES.map(function(t){var qv=q[t.id]||{used:0,total:0};return "<div style=\"display:grid;grid-template-columns:1fr 100px 100px;align-items:center;gap:10px;padding:10px 12px;background:#fafafa;border-radius:10px;border:1px solid #eee\"><div style=\"display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">"+t.icon+"</span><span style=\"font-size:13px;font-weight:500;color:#1a1a1a\">"+t.label+"</span></div><div><label style=\"display:block;font-size:10px;color:#999;margin-bottom:3px\">ใช้ไปแล้ว</label><input type=\"number\" id=\"q-used-"+t.id+"\" value=\""+qv.used+"\" min=\"0\" class=\"field-input\" style=\"padding:6px 8px;font-size:13px;text-align:center\"></div><div><label style=\"display:block;font-size:10px;color:#999;margin-bottom:3px\">โควต้ารวม</label><input type=\"number\" id=\"q-total-"+t.id+"\" value=\""+qv.total+"\" min=\"0\" class=\"field-input\" style=\"padding:6px 8px;font-size:13px;text-align:center\"></div></div>";}).join("");
+  renderQuotaModalContent();
   show("quota-modal");
 }
-async function saveQuota(){if(!quotaEditId)return;var upd={};TYPES.forEach(function(t){var u=parseInt(($("q-used-"+t.id)||{value:"0"}).value)||0;var tot=parseInt(($("q-total-"+t.id)||{value:"0"}).value)||0;upd[t.id]={used:u,total:tot};});await refQuota().child(quotaEditId).set(upd);closeModal("quota-modal");}
+function renderQuotaModalContent(){
+  var key=quotaEditId;if(!key)return;
+  // Tab bar
+  var tabBar="<div style='display:flex;gap:6px;margin-bottom:16px;background:#f3f3f3;border-radius:8px;padding:3px'>"
+    +"<button onclick='switchQuotaTab(\"quota\")' id='qtab-quota' style='flex:1;padding:7px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:"+(quotaModalTab==="quota"?"#fff":"transparent")+";color:"+(quotaModalTab==="quota"?"#1a1a1a":"#888")+";box-shadow:"+(quotaModalTab==="quota"?"0 1px 3px rgba(0,0,0,.1)":"none")+"'>📅 โควต้าวันลา</button>"
+    +"<button onclick='switchQuotaTab(\"holidays\")' id='qtab-holidays' style='flex:1;padding:7px;border-radius:6px;border:none;font-size:12px;font-weight:600;cursor:pointer;background:"+(quotaModalTab==="holidays"?"#fff":"transparent")+";color:"+(quotaModalTab==="holidays"?"#1a1a1a":"#888")+";box-shadow:"+(quotaModalTab==="holidays"?"0 1px 3px rgba(0,0,0,.1)":"none")+"'>🏖️ สิทธิ์วันหยุดลาชดเชย</button>"
+    +"</div>";
+  var content="";
+  if(quotaModalTab==="quota"){
+    var q=getUserQuota(key);
+    content=TYPES.map(function(t){var qv=q[t.id]||{used:0,total:0};return "<div style=\"display:grid;grid-template-columns:1fr 100px 100px;align-items:center;gap:10px;padding:10px 12px;background:#fafafa;border-radius:10px;border:1px solid #eee\"><div style=\"display:flex;align-items:center;gap:8px\"><span style=\"font-size:18px\">"+t.icon+"</span><span style=\"font-size:13px;font-weight:500;color:#1a1a1a\">"+t.label+"</span></div><div><label style=\"display:block;font-size:10px;color:#999;margin-bottom:3px\">ใช้ไปแล้ว</label><input type=\"number\" id=\"q-used-"+t.id+"\" value=\""+qv.used+"\" min=\"0\" class=\"field-input\" style=\"padding:6px 8px;font-size:13px;text-align:center\"></div><div><label style=\"display:block;font-size:10px;color:#999;margin-bottom:3px\">โควต้ารวม</label><input type=\"number\" id=\"q-total-"+t.id+"\" value=\""+qv.total+"\" min=\"0\" class=\"field-input\" style=\"padding:6px 8px;font-size:13px;text-align:center\"></div></div>";}).join("");
+  } else {
+    // Holiday permission tab
+    var allowed=getUserAllowedHolidays(key); // null=all, obj=specific
+    var isCustom=allowed!==null;
+    var allH=H2568.concat(H2569);
+    content="<div style='margin-bottom:12px;padding:10px 12px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;font-size:12px;color:#92400e'>"
+      +"⚠️ กำหนดว่าพนักงานคนนี้สามารถใช้วันหยุดนักขัตฤกษ์วันใดในการ <strong>ลาชดเชย</strong> ได้บ้าง"
+      +"</div>"
+      +"<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:10px'>"
+      +"<label style='display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer'>"
+      +"<input type='checkbox' id='hol-custom-toggle' "+(isCustom?"":"checked")+" onchange='toggleHolidayMode()' style='width:16px;height:16px'>"
+      +"<span>อนุญาตทุกวันหยุด (ไม่จำกัด)</span></label>"
+      +"<div style='display:flex;gap:6px'>"
+      +"<button onclick='selectAllHolidays(true)' style='padding:4px 10px;border-radius:6px;border:1.5px solid #d1fae5;background:#f0fdf4;color:#166534;font-size:11px;font-weight:600;cursor:pointer'>เลือกทั้งหมด</button>"
+      +"<button onclick='selectAllHolidays(false)' style='padding:4px 10px;border-radius:6px;border:1.5px solid #fecaca;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:600;cursor:pointer'>ยกเลิกทั้งหมด</button>"
+      +"</div></div>"
+      +"<div id='hol-list' style='display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto'>";
+    // group by year
+    [{yr:2568,list:H2568},{yr:2569,list:H2569}].forEach(function(g){
+      content+="<div style='font-size:11px;font-weight:700;color:#999;margin:6px 0 2px;text-transform:uppercase;letter-spacing:.6px'>ปี "+g.yr+"</div>";
+      g.list.forEach(function(h){
+        var p=h.date.split("-");
+        var dateLabel=h.name+" — "+h.day+" "+parseInt(p[2])+" "+MONTHS[parseInt(p[1])]+" "+g.yr;
+        var checked=(allowed===null)||!!(allowed&&allowed[h.date]);
+        var isUsed=getUsedCompHolidayDates(key).has(h.date);
+        content+="<label style='display:flex;align-items:center;gap:10px;padding:8px 12px;background:"+(checked?"#f0fdf4":"#fafafa")+";border:1px solid "+(checked?"#bbf7d0":"#eee")+";border-radius:8px;cursor:pointer;transition:all .15s'>"
+          +"<input type='checkbox' class='hol-cb' data-date='"+h.date+"' "+(checked?"checked":"")+" "+(isUsed?"disabled title='ใช้ไปแล้ว ไม่สามารถปลดสิทธิ์ได้'":"")+" style='width:15px;height:15px;cursor:pointer' onchange='updateHolItemStyle(this)'>"
+          +"<span style='flex:1;font-size:12px;color:#1a1a1a'>"+dateLabel+"</span>"
+          +(isUsed?"<span style='font-size:10px;background:#d1fae5;color:#065f46;padding:1px 7px;border-radius:20px;font-weight:600'>ใช้แล้ว</span>":"")
+          +"</label>";
+      });
+    });
+    content+="</div>";
+  }
+  $("quota-fields").innerHTML=tabBar+content;
+  // keep "all allowed" toggle state in sync
+  if(quotaModalTab==="holidays"){
+    var tog=$("hol-custom-toggle");
+    if(tog){
+      var isAllMode=(allowed===null);
+      tog.checked=isAllMode;
+      // disable checkboxes if all-mode
+      document.querySelectorAll(".hol-cb").forEach(function(cb){if(!cb.disabled)cb.disabled=isAllMode;});
+    }
+  }
+}
+function switchQuotaTab(tab){quotaModalTab=tab;renderQuotaModalContent();}
+function toggleHolidayMode(){
+  var tog=$("hol-custom-toggle");if(!tog)return;
+  var isAllMode=tog.checked;
+  document.querySelectorAll(".hol-cb").forEach(function(cb){
+    // don't re-enable "used" ones
+    var isUsed=getUsedCompHolidayDates(quotaEditId).has(cb.dataset.date);
+    if(!isUsed)cb.disabled=isAllMode;
+    if(isAllMode){cb.checked=true;updateHolItemStyle(cb);}
+  });
+}
+function updateHolItemStyle(cb){
+  var label=cb.closest("label");if(!label)return;
+  label.style.background=cb.checked?"#f0fdf4":"#fafafa";
+  label.style.borderColor=cb.checked?"#bbf7d0":"#eee";
+}
+function selectAllHolidays(val){
+  var tog=$("hol-custom-toggle");if(tog&&tog.checked)return; // all-mode, noop
+  document.querySelectorAll(".hol-cb").forEach(function(cb){
+    var isUsed=getUsedCompHolidayDates(quotaEditId).has(cb.dataset.date);
+    if(!isUsed){cb.checked=val;updateHolItemStyle(cb);}
+  });
+}
+async function saveQuota(){
+  if(!quotaEditId)return;
+  if(quotaModalTab==="quota"){
+    var upd={};TYPES.forEach(function(t){var u=parseInt(($("q-used-"+t.id)||{value:"0"}).value)||0;var tot=parseInt(($("q-total-"+t.id)||{value:"0"}).value)||0;upd[t.id]={used:u,total:tot};});
+    await refQuota().child(quotaEditId).set(upd);
+  } else {
+    var tog=$("hol-custom-toggle");
+    if(tog&&tog.checked){
+      // all allowed → remove restriction
+      await refAllowedHolidays(quotaEditId).remove();
+    } else {
+      var holUpd={};
+      document.querySelectorAll(".hol-cb").forEach(function(cb){if(cb.checked)holUpd[cb.dataset.date]=true;});
+      await refAllowedHolidays(quotaEditId).set(Object.keys(holUpd).length?holUpd:{});
+    }
+  }
+  closeModal("quota-modal");
+}
 
 function downloadTemplate(){
   var h=[["ชื่อ-นามสกุล","Username","รหัสผ่าน","ตำแหน่ง","วันเริ่มงาน (YYYY-MM-DD)","ฝ่าย","บริษัท (CRR/CEC/CDF/CFR/CFP/CIC)","Role"]];
