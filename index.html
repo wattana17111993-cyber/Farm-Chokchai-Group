@@ -99,12 +99,10 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
 @keyframes spin{to{transform:rotate(360deg)}}
 .branch-tag-farm{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600}
 .branch-tag-ho{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;font-size:10px;padding:1px 7px;border-radius:20px;font-weight:600}
-/* Time range picker */
 .time-range-row{display:flex;align-items:center;gap:8px}
 .time-range-row input[type=time]{flex:1;padding:9px 10px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:13px;outline:none;background:#fafafa;color:#1a1a1a}
 .time-range-row input[type=time]:focus{border-color:#aaa}
 .time-range-sep{font-size:13px;color:#bbb;flex-shrink:0}
-/* Company pill */
 .company-pill{font-size:10px;padding:1px 7px;border-radius:20px;font-weight:700;border:1px solid;white-space:nowrap}
 @media(max-width:480px){.grid3{gap:8px}.card{padding:12px 10px}.header-inner{padding:0 12px}.row{padding:10px 12px;gap:8px}.emp-table th,.emp-table td{padding:8px 10px;font-size:12px}}
 </style>
@@ -167,7 +165,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
     </div>
   </header>
 
-  <!-- Employee view -->
   <div id="view-employee" class="container hidden">
     <div class="tabs">
       <button class="tab-btn active" onclick="empTab('dashboard',this)">📊 ภาพรวม</button>
@@ -212,7 +209,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="period-full" onclick="setPeriod('full')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #1a1a1a;background:#1a1a1a;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">📅</div><div style="font-size:12px;font-weight:500;color:#fff">เต็มวัน</div></button>
             <button id="period-am" onclick="setPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="period-pm" onclick="setPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
-            <!-- TIME RANGE button inline (shown for sick_cert, personal, sick) -->
             <button type="button" id="f-time-range-wrap" onclick="openTimePicker('emp')" class="hidden" data-selected="0" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
               <div style="font-size:18px;margin-bottom:2px">⏰</div>
               <div class="time-btn-label" style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
@@ -226,7 +222,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
     </div>
   </div>
 
-  <!-- Manager view -->
   <div id="view-manager" class="container hidden">
     <div class="tabs">
       <button class="tab-btn active" id="mgr-tab-overview" onclick="mgrMainTab('overview',this)">📊 ภาพรวม</button>
@@ -272,7 +267,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
             <button id="mgr-period-full" onclick="mgrSetPeriod('full')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #1a1a1a;background:#1a1a1a;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">📅</div><div style="font-size:12px;font-weight:500;color:#fff">เต็มวัน</div></button>
             <button id="mgr-period-am" onclick="mgrSetPeriod('am')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌅</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันเช้า</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
             <button id="mgr-period-pm" onclick="mgrSetPeriod('pm')" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center"><div style="font-size:18px;margin-bottom:2px">🌇</div><div style="font-size:12px;font-weight:500;color:#555">ครึ่งวันบ่าย</div><div style="font-size:11px;color:#bbb;margin-top:2px">0.5 วัน</div></button>
-            <!-- TIME RANGE button inline for manager -->
             <button type="button" id="mgr-f-time-range-wrap" onclick="openTimePicker('mgr')" class="hidden" data-selected="0" style="flex:1;padding:10px 8px;border-radius:12px;border:1.5px solid #e8e8e8;background:#fff;cursor:pointer;text-align:center">
               <div style="font-size:18px;margin-bottom:2px">⏰</div>
               <div class="time-btn-label" style="font-size:11px;font-weight:500;color:#555">ช่วงเวลา</div>
@@ -304,7 +298,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
     </div>
   </div>
 
-  <!-- Admin view -->
   <div id="view-admin" class="container hidden">
     <div class="tabs">
       <button class="tab-btn active" onclick="adminMainTab('leaves',this)">📋 คำขอลา</button>
@@ -401,7 +394,6 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <option value="special_dept">ฝ่ายพิเศษ</option><option value="other">อื่นๆ</option>
         </select>
       </div>
-      <!-- NEW: Company field -->
       <div><label class="field-label">บริษัท</label>
         <select id="em-company" class="field-input">
           <option value="">-- ไม่ระบุ --</option>
@@ -436,24 +428,14 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
     <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('quota-modal')">ยกเลิก</button><button class="btn-confirm" onclick="saveQuota()">บันทึก</button></div>
   </div>
 </div>
-<!-- Time Picker Modal -->
 <div id="time-picker-modal" class="modal-overlay hidden">
   <div class="modal" style="max-width:320px">
     <h3>⏰ ระบุช่วงเวลา</h3>
     <div style="display:flex;flex-direction:column;gap:14px;margin-bottom:4px">
-      <div>
-        <label class="field-label">เวลาเริ่มต้น</label>
-        <input type="time" id="tp-start" class="field-input" value="08:00" style="font-size:20px;text-align:center;padding:12px">
-      </div>
-      <div>
-        <label class="field-label">เวลาสิ้นสุด</label>
-        <input type="time" id="tp-end" class="field-input" value="17:00" style="font-size:20px;text-align:center;padding:12px">
-      </div>
+      <div><label class="field-label">เวลาเริ่มต้น</label><input type="time" id="tp-start" class="field-input" value="08:00" style="font-size:20px;text-align:center;padding:12px"></div>
+      <div><label class="field-label">เวลาสิ้นสุด</label><input type="time" id="tp-end" class="field-input" value="17:00" style="font-size:20px;text-align:center;padding:12px"></div>
     </div>
-    <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('time-picker-modal')">ยกเลิก</button>
-      <button class="btn-confirm" onclick="confirmTimePicker()">ตกลง</button>
-    </div>
+    <div class="modal-actions"><button class="btn-cancel" onclick="closeModal('time-picker-modal')">ยกเลิก</button><button class="btn-confirm" onclick="confirmTimePicker()">ตกลง</button></div>
   </div>
 </div>
 <div id="del-modal" class="modal-overlay hidden">
@@ -475,20 +457,19 @@ firebase.initializeApp({
   messagingSenderId:"986153379003",
   appId:"1:986153379003:web:d995aa6a65580b293df59e"
 });
-var db = firebase.database();
+var db=firebase.database();
+function branchPath(sub){return currentBranch+"/"+sub;}
+var currentBranch="farm";
+function refUsers(){return db.ref(branchPath("users"));}
+function refHistory(){return db.ref(branchPath("history"));}
+function refQuota(){return db.ref(branchPath("quota"));}
+function refUser(k){return db.ref(branchPath("users/"+k));}
 
-function branchPath(sub){ return currentBranch + "/" + sub; }
-var currentBranch = "farm";
-function refUsers()  { return db.ref(branchPath("users")); }
-function refHistory(){ return db.ref(branchPath("history")); }
-function refQuota()  { return db.ref(branchPath("quota")); }
-function refUser(k)  { return db.ref(branchPath("users/"+k)); }
-
-var ROLE_LEVEL  = {employee:1,supervisor:2,assistant_mgr:3,manager:4,deputy:5,admin:6};
-var ROLE_LABEL  = {employee:"พนักงาน",supervisor:"หัวหน้างาน",assistant_mgr:"ผู้ช่วยผู้จัดการ",manager:"ผู้จัดการ",deputy:"รองกรรมการ",admin:"ผู้ดูแลระบบ"};
-var ROLE_BADGE  = {admin:"Admin"};
-var ROLE_CLS    = {employee:"b-personal",supervisor:"badge-supervisor",assistant_mgr:"badge-assistant",manager:"badge-manager",deputy:"badge-deputy",admin:"badge-admin"};
-var ROLE_COLOR  = {employee:"#1a1a1a",supervisor:"#0369a1",assistant_mgr:"#6b21a8",manager:"#7b1a1a",deputy:"#065f46",admin:"#4f46e5"};
+var ROLE_LEVEL={employee:1,supervisor:2,assistant_mgr:3,manager:4,deputy:5,admin:6};
+var ROLE_LABEL={employee:"พนักงาน",supervisor:"หัวหน้างาน",assistant_mgr:"ผู้ช่วยผู้จัดการ",manager:"ผู้จัดการ",deputy:"รองกรรมการ",admin:"ผู้ดูแลระบบ"};
+var ROLE_BADGE={admin:"Admin"};
+var ROLE_CLS={employee:"b-personal",supervisor:"badge-supervisor",assistant_mgr:"badge-assistant",manager:"badge-manager",deputy:"badge-deputy",admin:"badge-admin"};
+var ROLE_COLOR={employee:"#1a1a1a",supervisor:"#0369a1",assistant_mgr:"#6b21a8",manager:"#7b1a1a",deputy:"#065f46",admin:"#4f46e5"};
 function getRoleLevel(r){return ROLE_LEVEL[r]||1;}
 function isManagerLevel(r){return getRoleLevel(r)>=3;}
 function canLeave(r){return r!=="deputy"&&r!=="admin";}
@@ -498,8 +479,7 @@ function canApproveTarget(myRole,targetRole){
   return m>=3&&m>t;
 }
 
-// ── Companies ──────────────────────────────────────────────────────
-var COMPANIES = {
+var COMPANIES={
   CRR:{label:"โชคชัยแรนช์รีสอร์ท",short:"CRR",color:"#9f1239",bg:"#fff1f2",border:"#fecdd3"},
   CEC:{label:"โชคชัยเอ็นเตอร์เทนเม้นท์",short:"CEC",color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
   CDF:{label:"ฟาร์มโชคชัย",short:"CDF",color:"#c2410c",bg:"#fff7ed",border:"#fed7aa"},
@@ -507,7 +487,6 @@ var COMPANIES = {
   CFP:{label:"โชคชัยฟาร์มโปรดิวซ์",short:"CFP",color:"#15803d",bg:"#f0fdf4",border:"#86efac"},
   CIC:{label:"โชคชัยอินเตอร์เนชั่นแนล",short:"CIC",color:"#0369a1",bg:"#f0f9ff",border:"#bae6fd"}
 };
-
 var DEPTS={
   purchase:{label:"ฝ่ายจัดซื้อ",color:"#92400e",bg:"#fffbeb",border:"#fde68a"},
   hr:{label:"ฝ่ายบริหารบุคคล",color:"#166534",bg:"#f0fdf4",border:"#bbf7d0"},
@@ -528,10 +507,7 @@ var DEPTS={
   special_dept:{label:"ฝ่ายพิเศษ",color:"#6b21a8",bg:"#f5f3ff",border:"#ddd6fe"},
   other:{label:"อื่นๆ",color:"#555",bg:"#f5f5f5",border:"#e0e0e0"}
 };
-
-// Types that support time range
-var TIME_RANGE_TYPES = ["sick_cert","personal","sick"];
-
+var TIME_RANGE_TYPES=["sick_cert","personal","sick"];
 var TYPES=[
   {id:"sick_cert",label:"ลาป่วย (มีใบรับรองแพทย์)",icon:"🏥",code:"SC"},
   {id:"personal",label:"ลากิจ",icon:"📋",code:"P"},
@@ -546,27 +522,13 @@ var H2568=[{date:"2568-01-01",day:"พุธ",name:"วันขึ้นปี�
 var H2569=[{date:"2569-01-01",day:"พฤหัสบดี",name:"วันขึ้นปีใหม่"},{date:"2569-01-02",day:"ศุกร์",name:"วันหยุดตามมติ ครม."},{date:"2569-03-03",day:"อังคาร",name:"วันมาฆบูชา"},{date:"2569-04-06",day:"จันทร์",name:"วันจักรี"},{date:"2569-04-13",day:"จันทร์",name:"วันสงกรานต์"},{date:"2569-04-14",day:"อังคาร",name:"วันสงกรานต์"},{date:"2569-04-15",day:"พุธ",name:"วันสงกรานต์"},{date:"2569-05-01",day:"ศุกร์",name:"วันแรงงานแห่งชาติ"},{date:"2569-05-04",day:"จันทร์",name:"วันฉัตรมงคล"},{date:"2569-05-31",day:"อาทิตย์",name:"วันวิสาขบูชา"},{date:"2569-06-03",day:"พุธ",name:"วันเฉลิมพระชนมพรรษาราชินี"},{date:"2569-07-28",day:"อังคาร",name:"วันเฉลิมพระชนมพรรษา ร.10"},{date:"2569-07-29",day:"พุธ",name:"วันอาสาฬหบูชา"},{date:"2569-08-12",day:"พุธ",name:"วันแม่แห่งชาติ"},{date:"2569-10-13",day:"อังคาร",name:"วันนวมินทรมหาราช"},{date:"2569-10-23",day:"ศุกร์",name:"วันปิยมหาราช"},{date:"2569-12-05",day:"เสาร์",name:"วันชาติและวันพ่อแห่งชาติ"},{date:"2569-12-10",day:"พฤหัสบดี",name:"วันรัฐธรรมนูญ"},{date:"2569-12-31",day:"พฤหัสบดี",name:"วันสิ้นปี"}];
 var MONTHS=["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
 
-var currentUser=null;
-var selectedBranchLogin="farm";
-
-function selectBranch(br){
-  selectedBranchLogin=br;
-  var sf=$("sel-farm"),sh=$("sel-ho");
-  if(!sf||!sh)return;
-  if(br==="farm"){
-    sf.style.borderColor="#c2410c";sf.style.background="#fff7ed";sf.querySelector("div:last-child").style.color="#c2410c";
-    sh.style.borderColor="#e8e8e8";sh.style.background="#fff";sh.querySelector("div:last-child").style.color="#aaa";
-  } else {
-    sh.style.borderColor="#1d4ed8";sh.style.background="#eff6ff";sh.querySelector("div:last-child").style.color="#1d4ed8";
-    sf.style.borderColor="#e8e8e8";sf.style.background="#fff";sf.querySelector("div:last-child").style.color="#aaa";
-  }
-}
-
+var currentUser=null,selectedBranchLogin="farm";
 var selectedType="",selectedPeriod="full",selectedHolidayYear=2568;
 var mgrSelectedType="",mgrSelectedPeriod="full",mgrSelectedHolidayYear=2568;
 var mgrStatusTabState="pending",adminLeaveTabState="pending";
 var rejectTargetId=null,cancelTargetId=null,empEditId=null,delTargetId=null,quotaEditId=null;
 var historyData={},quotaData={},usersData={},importRows=[];
+var timePickerPrefix="emp";
 
 function $(id){return document.getElementById(id);}
 function show(id){var e=$(id);if(e)e.classList.remove("hidden");}
@@ -605,39 +567,83 @@ function refreshViews(){
   else renderEmployee();
 }
 
+// ── FIXED: buildHolidayDropdown now filters out already-used comp holidays ──
+function getUsedCompHolidayDates(uid){
+  // Returns a Set of date strings (e.g. "2568-07-28") already used (pending or approved)
+  var used=new Set();
+  getHistory().forEach(function(h){
+    if(h.userId===uid && h.type==="comp" && (h.status==="pending"||h.status==="approved") && h.note){
+      // note format: "ชดเชย: <name> (<day> <date>)" — but we stored the holiday date in the from field indirectly.
+      // We stored compVal in note. Re-parse the holiday date from compHolidayDate field (if present),
+      // or fall back to parsing from note.
+      if(h.compHolidayDate){
+        used.add(h.compHolidayDate);
+      }
+    }
+  });
+  return used;
+}
+
+function buildHolidayDropdown(year,selId,uid){
+  var oldSel=$(selId);if(!oldSel)return;
+  var newSel=document.createElement("select");
+  newSel.id=selId;newSel.className="field-input";
+  newSel.onchange=selId==="mgr-f-comp-holiday"?mgrUpdateSubmitBtn:updateSubmitBtn;
+  var def=document.createElement("option");def.value="";def.textContent="-- เลือกวันหยุดนักขัตฤกษ์ --";newSel.appendChild(def);
+  var list=year===2569?H2569:H2568;
+  // Get used dates for current user
+  var targetUid=uid||(currentUser?currentUser._key:null);
+  var usedDates=targetUid?getUsedCompHolidayDates(targetUid):new Set();
+  list.forEach(function(h){
+    var p=h.date.split("-");
+    var opt=document.createElement("option");
+    opt.value=h.date+"|"+h.day+"|"+h.name;
+    var label=h.name+" — "+h.day+" "+parseInt(p[2])+" "+MONTHS[parseInt(p[1])]+" "+year;
+    if(usedDates.has(h.date)){
+      opt.disabled=true;
+      opt.textContent="✓ ใช้แล้ว — "+label;
+      opt.style.color="#bbb";
+    } else {
+      opt.textContent=label;
+    }
+    newSel.appendChild(opt);
+  });
+  oldSel.parentNode.replaceChild(newSel,oldSel);
+}
+
 async function initDB(){
   show("db-loading");
   try{
-    var oldUsers = await db.ref("users").once("value");
+    var oldUsers=await db.ref("users").once("value");
     if(oldUsers.val()){
-      var farmUsersSnap = await db.ref("farm/users").once("value");
+      var farmUsersSnap=await db.ref("farm/users").once("value");
       if(!farmUsersSnap.val()){
-        var uUpd = {};
-        Object.entries(oldUsers.val()).forEach(function(e){ uUpd["farm/users/"+e[0]] = e[1]; });
-        var oldHist = await db.ref("history").once("value");
-        if(oldHist.val()) Object.entries(oldHist.val()).forEach(function(e){ uUpd["farm/history/"+e[0]] = e[1]; });
-        var oldQuota = await db.ref("quota").once("value");
-        if(oldQuota.val()) Object.entries(oldQuota.val()).forEach(function(e){ uUpd["farm/quota/"+e[0]] = e[1]; });
+        var uUpd={};
+        Object.entries(oldUsers.val()).forEach(function(e){uUpd["farm/users/"+e[0]]=e[1];});
+        var oldHist=await db.ref("history").once("value");
+        if(oldHist.val())Object.entries(oldHist.val()).forEach(function(e){uUpd["farm/history/"+e[0]]=e[1];});
+        var oldQuota=await db.ref("quota").once("value");
+        if(oldQuota.val())Object.entries(oldQuota.val()).forEach(function(e){uUpd["farm/quota/"+e[0]]=e[1];});
         await db.ref("/").update(uUpd);
       }
     }
-  } catch(e){ console.warn("migrate:",e); }
+  }catch(e){console.warn("migrate:",e);}
   try{
-    var hoSnap = await db.ref("ho/users").once("value");
+    var hoSnap=await db.ref("ho/users").once("value");
     if(!hoSnap.val()){
-      var hoKey = db.ref("ho/users").push().key;
+      var hoKey=db.ref("ho/users").push().key;
       await db.ref("ho/users/"+hoKey).set({username:"adminho",password:"adminho",name:"ผู้ดูแลระบบ (HO)",role:"admin",dept:null,position:"Admin",avatar:"ผ",color:"#4f46e5",startDate:""});
     }
-  } catch(e){ console.warn("seed HO:",e); }
+  }catch(e){console.warn("seed HO:",e);}
   hide("db-loading");show("login-page");
-  var saved = loadSession();
-  if(saved && saved._key){
-    var br = (saved.branch||"FARM").toLowerCase()==="ho" ? "ho" : "farm";
-    currentBranch = br;
+  var saved=loadSession();
+  if(saved&&saved._key){
+    var br=(saved.branch||"FARM").toLowerCase()==="ho"?"ho":"farm";
+    currentBranch=br;
     try{
-      var s = await db.ref(br+"/users/"+saved._key).once("value");
-      if(s.val()) enterApp(Object.assign({},s.val(),{_key:saved._key, branch:br.toUpperCase()}));
-    } catch(e){}
+      var s=await db.ref(br+"/users/"+saved._key).once("value");
+      if(s.val())enterApp(Object.assign({},s.val(),{_key:saved._key,branch:br.toUpperCase()}));
+    }catch(e){}
   }
 }
 
@@ -670,6 +676,18 @@ document.addEventListener("DOMContentLoaded",function(){
   ["mgr-f-from","mgr-f-to","mgr-f-single-date"].forEach(function(id){var e=$(id);if(e)e.addEventListener("change",mgrUpdateSubmitBtn);});
 });
 
+function selectBranch(br){
+  selectedBranchLogin=br;
+  var sf=$("sel-farm"),sh=$("sel-ho");if(!sf||!sh)return;
+  if(br==="farm"){
+    sf.style.borderColor="#c2410c";sf.style.background="#fff7ed";sf.querySelector("div:last-child").style.color="#c2410c";
+    sh.style.borderColor="#e8e8e8";sh.style.background="#fff";sh.querySelector("div:last-child").style.color="#aaa";
+  }else{
+    sh.style.borderColor="#1d4ed8";sh.style.background="#eff6ff";sh.querySelector("div:last-child").style.color="#1d4ed8";
+    sf.style.borderColor="#e8e8e8";sf.style.background="#fff";sf.querySelector("div:last-child").style.color="#aaa";
+  }
+}
+
 async function doLogin(){
   var u=($("inp-user").value||"").trim(),p=$("inp-pw").value||"";
   if(!u||!p){$("login-error-text").textContent="กรุณากรอกชื่อผู้ใช้และรหัสผ่าน";show("login-error");return;}
@@ -683,12 +701,12 @@ async function doLogin(){
       hide("login-error");currentBranch=br;
       enterApp(Object.assign({},found[1],{_key:found[0],branch:br.toUpperCase()}));
       seedAndMigrateBackground();
-    } else {
+    }else{
       var brLabel=br==="farm"?"Farm Chokchai":"HO สำนักงานใหญ่";
       $("login-error-text").textContent="ไม่พบผู้ใช้นี้ใน "+brLabel;
       show("login-error");btn.disabled=false;btn.textContent="เข้าสู่ระบบ →";
     }
-  } catch(err){
+  }catch(err){
     $("login-error-text").textContent="เกิดข้อผิดพลาด: "+err.message;
     show("login-error");btn.disabled=false;btn.textContent="เข้าสู่ระบบ →";
   }
@@ -719,7 +737,7 @@ function enterApp(user){
     var lt=$("mgr-tab-leave");if(lt)lt.style.display=canLeave(r)?"":"none";
     show("mgr-overview-section");hide("mgr-leave-section");hide("mgr-approve-section");
     renderMgrOverview();renderApprove();
-  } else {show("view-employee");show("emp-dashboard");hide("emp-request");renderEmployee();}
+  }else{show("view-employee");show("emp-dashboard");hide("emp-request");renderEmployee();}
   startListeners();
   buildHolidayDropdown(2568,"f-comp-holiday");
   buildHolidayDropdown(2568,"mgr-f-comp-holiday");
@@ -735,28 +753,15 @@ function doLogout(){
   selectedBranchLogin="farm";selectBranch("farm");
 }
 
-function buildHolidayDropdown(year,selId){
-  var oldSel=$(selId);if(!oldSel)return;
-  var newSel=document.createElement("select");newSel.id=selId;newSel.className="field-input";
-  newSel.onchange=selId==="mgr-f-comp-holiday"?mgrUpdateSubmitBtn:updateSubmitBtn;
-  var def=document.createElement("option");def.value="";def.textContent="-- เลือกวันหยุดนักขัตฤกษ์ --";newSel.appendChild(def);
-  var list=year===2569?H2569:H2568;
-  list.forEach(function(h){var p=h.date.split("-");var opt=document.createElement("option");opt.value=h.date+"|"+h.day+"|"+h.name;opt.textContent=h.name+" — "+h.day+" "+parseInt(p[2])+" "+MONTHS[parseInt(p[1])]+" "+year;newSel.appendChild(opt);});
-  oldSel.parentNode.replaceChild(newSel,oldSel);
-}
-
-// ── Time range helpers ─────────────────────────────────────────────
-var timePickerPrefix = "emp";
-
+// Time range helpers
 function applySingleDate(fromId,toId,toWrapId,singleWrapId,singleId){
-  // Hide from+to, show single date
   var fw=$(fromId);if(fw)fw.closest("div").style.display="none";
   var tw=$(toWrapId);if(tw)tw.style.display="none";
   var sw=$(singleWrapId);if(sw)sw.classList.remove("hidden");
 }
 function removeSingleDate(prefix){
   var pre=prefix==="mgr"?"mgr-":"";
-  var fw=$(pre+"f-from");if(fw){fw.closest("div").style.display="";}
+  var fw=$(pre+"f-from");if(fw)fw.closest("div").style.display="";
   var tw=$(pre+"f-to-wrap");
   var sp=prefix==="mgr"?mgrSelectedPeriod:selectedPeriod;
   if(tw)tw.style.display=(sp==="full")?"":"none";
@@ -764,14 +769,14 @@ function removeSingleDate(prefix){
   var sd=$(pre+"f-single-date");if(sd)sd.value="";
 }
 function showTimeRange(prefix){
-  var t = prefix==="mgr" ? mgrSelectedType : selectedType;
-  var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
-  if(TIME_RANGE_TYPES.indexOf(t)>=0) show(wrapId);
-  else { resetTimeBtn(prefix); hide(wrapId); }
+  var t=prefix==="mgr"?mgrSelectedType:selectedType;
+  var wrapId=prefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
+  if(TIME_RANGE_TYPES.indexOf(t)>=0)show(wrapId);
+  else{resetTimeBtn(prefix);hide(wrapId);}
 }
 function resetTimeBtn(prefix){
-  var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
-  var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
+  var wrapId=prefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
+  var dispId=prefix==="mgr"?"mgr-f-time-display":"f-time-display";
   var btn=$(wrapId);if(!btn)return;
   btn.style.background="#fff";btn.style.borderColor="#e8e8e8";btn.dataset.selected="0";
   var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#555";
@@ -779,11 +784,10 @@ function resetTimeBtn(prefix){
 }
 function openTimePicker(prefix){
   timePickerPrefix=prefix;
-  var wrapId = prefix==="mgr" ? "mgr-f-time-range-wrap" : "f-time-range-wrap";
-  var dispId = prefix==="mgr" ? "mgr-f-time-display" : "f-time-display";
+  var wrapId=prefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
+  var dispId=prefix==="mgr"?"mgr-f-time-display":"f-time-display";
   var btn=$(wrapId);
-  // Toggle off if already selected
-  if(btn && btn.dataset.selected==="1"){resetTimeBtn(prefix);return;}
+  if(btn&&btn.dataset.selected==="1"){resetTimeBtn(prefix);return;}
   var disp=$(dispId)?$(dispId).textContent:"08:00—17:00";
   var parts=disp.split("—");
   $("tp-start").value=(parts[0]||"08:00").trim();
@@ -791,32 +795,21 @@ function openTimePicker(prefix){
   show("time-picker-modal");
 }
 function confirmTimePicker(){
-  var s=$("tp-start").value||"08:00";
-  var e=$("tp-end").value||"17:00";
+  var s=$("tp-start").value||"08:00",e=$("tp-end").value||"17:00";
   var dispId=timePickerPrefix==="mgr"?"mgr-f-time-display":"f-time-display";
   var wrapId=timePickerPrefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap";
   var pre=timePickerPrefix==="mgr"?"mgr-":"";
-  // Deselect all period buttons
-  var ids=timePickerPrefix==="mgr"
-    ?["mgr-period-full","mgr-period-am","mgr-period-pm"]
-    :["period-full","period-am","period-pm"];
-  ids.forEach(function(id){
-    var b=$(id);if(!b)return;
-    b.style.background="#fff";b.style.borderColor="#e8e8e8";
-    b.querySelectorAll("div").forEach(function(el){el.style.color="";});
-  });
-  // Hide to-wrap
+  var ids=timePickerPrefix==="mgr"?["mgr-period-full","mgr-period-am","mgr-period-pm"]:["period-full","period-am","period-pm"];
+  ids.forEach(function(id){var b=$(id);if(!b)return;b.style.background="#fff";b.style.borderColor="#e8e8e8";b.querySelectorAll("div").forEach(function(el){el.style.color="";});});
   var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="none";
   var disp=$(dispId);if(disp){disp.textContent=s+"—"+e;disp.style.color="#aaa";}
   var btn=$(wrapId);
-  if(btn){btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";
-    var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#fff";}
-  // Switch to single-date mode
+  if(btn){btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";var label=btn.querySelector(".time-btn-label");if(label)label.style.color="#fff";}
   applySingleDate(pre+"f-from",pre+"f-to",pre+"f-to-wrap",pre+"f-single-date-wrap",pre+"f-single-date");
   closeModal("time-picker-modal");
 }
 
-// ── Employee ───────────────────────────────────────────────────────
+// Employee
 function empTab(tab,btn){
   document.querySelectorAll("#view-employee .tab-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
@@ -844,26 +837,24 @@ function updateSubmitBtn(){
   var to=$("f-to")?$("f-to").value:"";
   var dayoff=$("f-dayoff")?$("f-dayoff").value:"",comp=$("f-comp-holiday")?$("f-comp-holiday").value:"";
   if(selectedType==="dayoff")el.disabled=!from||!dayoff;
-  else if(selectedType==="comp")el.disabled=!from||!comp;
+  else if(selectedType==="comp")el.disabled=!selectedType||!from||!comp;
   else if(timeMode)el.disabled=!selectedType||!from;
   else el.disabled=!selectedType||!from||(selectedPeriod==="full"&&!to);
 }
 function selectType(id){
   selectedType=id;buildTypeButtons("type-btns",selectedType,null);
   handleTypeSelect(id,"f-from","f-to","f-to-wrap","label-from","f-dayoff","dayoff-extra","comp-extra","f-comp-holiday",updateSubmitBtn);
+  // Rebuild comp dropdown with fresh used-dates filter
+  if(id==="comp")buildHolidayDropdown(selectedHolidayYear,"f-comp-holiday");
   showTimeRange("emp");updateSubmitBtn();
 }
 function setPeriod(p){
-  selectedPeriod=p;
-  // Deselect time button when choosing a period
-  resetTimeBtn("emp");
-  removeSingleDate("emp");
-  applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");
-  updateSubmitBtn();
+  selectedPeriod=p;resetTimeBtn("emp");removeSingleDate("emp");
+  applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");updateSubmitBtn();
 }
 function selectHolidayYear(y){selectedHolidayYear=y;setYearBtn(y,"btn-year-68","btn-year-69");buildHolidayDropdown(y,"f-comp-holiday");updateSubmitBtn();}
 
-// ── Manager ────────────────────────────────────────────────────────
+// Manager
 function mgrMainTab(tab,btn){
   document.querySelectorAll("#view-manager > .tabs .tab-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
@@ -908,6 +899,7 @@ function renderApprove(){
 function mgrSelectType(id){
   mgrSelectedType=id;buildTypeButtons("mgr-type-btns",mgrSelectedType,null);
   handleTypeSelect(id,"mgr-f-from","mgr-f-to","mgr-f-to-wrap","mgr-label-from","mgr-f-dayoff","mgr-dayoff-extra","mgr-comp-extra","mgr-f-comp-holiday",mgrUpdateSubmitBtn);
+  if(id==="comp")buildHolidayDropdown(mgrSelectedHolidayYear,"mgr-f-comp-holiday");
   showTimeRange("mgr");mgrUpdateSubmitBtn();
 }
 function mgrUpdateSubmitBtn(){
@@ -917,21 +909,17 @@ function mgrUpdateSubmitBtn(){
   var to=$("mgr-f-to")?$("mgr-f-to").value:"";
   var dayoff=$("mgr-f-dayoff")?$("mgr-f-dayoff").value:"",comp=$("mgr-f-comp-holiday")?$("mgr-f-comp-holiday").value:"";
   if(mgrSelectedType==="dayoff")el.disabled=!from||!dayoff;
-  else if(mgrSelectedType==="comp")el.disabled=!from||!comp;
+  else if(mgrSelectedType==="comp")el.disabled=!mgrSelectedType||!from||!comp;
   else if(timeMode)el.disabled=!mgrSelectedType||!from;
   else el.disabled=!mgrSelectedType||!from||(mgrSelectedPeriod==="full"&&!to);
 }
 function mgrSetPeriod(p){
-  mgrSelectedPeriod=p;
-  // Deselect time button when choosing a period
-  resetTimeBtn("mgr");
-  removeSingleDate("mgr");
-  applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");
-  mgrUpdateSubmitBtn();
+  mgrSelectedPeriod=p;resetTimeBtn("mgr");removeSingleDate("mgr");
+  applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");mgrUpdateSubmitBtn();
 }
 function mgrSelectHolidayYear(y){mgrSelectedHolidayYear=y;setYearBtn(y,"mgr-btn-year-68","mgr-btn-year-69");buildHolidayDropdown(y,"mgr-f-comp-holiday");mgrUpdateSubmitBtn();}
 
-// ── Shared helpers ─────────────────────────────────────────────────
+// Shared helpers
 function buildQuotaCards(q){
   return TYPES.map(function(t){var qv=q[t.id]||{used:0,total:0};var pct=qv.total>0?Math.round(qv.used/qv.total*100):0;return "<div class=\"card\"><div style=\"font-size:20px;margin-bottom:8px\">"+t.icon+"</div><div style=\"font-size:11px;color:#888;margin-bottom:4px\">"+t.label+"</div><div style=\"display:flex;align-items:baseline;gap:3px;margin-bottom:10px\"><span style=\"font-size:24px;font-weight:700;color:#1a1a1a\">"+qv.used+"</span><span style=\"font-size:11px;color:#bbb\">/ "+qv.total+"</span></div><div class=\"progress-track\"><div class=\"progress-bar\" style=\"width:"+pct+"%\"></div></div></div>";}).join("");
 }
@@ -959,7 +947,6 @@ function handleTypeSelect(id,fromId,toId,toWrapId,labelFromId,dayoffId,dayoffExt
   if(updateFn)updateFn();
 }
 function applyPeriod(p,fullId,amId,pmId,toWrapId,fromId,toId){
-  // Single select: only the chosen one is active
   [[fullId,"full"],[amId,"am"],[pmId,"pm"]].forEach(function(pair){
     var b=$(pair[0]);if(!b)return;var a=p===pair[1];
     b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";
@@ -978,23 +965,20 @@ async function submitLeave(prefix){
   var pre=prefix==="mgr"?"mgr-":"";
   var selType=prefix==="mgr"?mgrSelectedType:selectedType;
   var selPeriod=prefix==="mgr"?mgrSelectedPeriod:selectedPeriod;
-  var timeSelected=$( (prefix==="mgr"?"mgr-":"")+"f-time-range-wrap");
+  var timeSelected=$(pre+"f-time-range-wrap");
   var usingTimeMode=timeSelected&&timeSelected.dataset.selected==="1";
-  var from, to, days;
+  var from,to,days;
   if(usingTimeMode){
     var sd=$(pre+"f-single-date");from=sd?sd.value:"";to=from;
-    // Calculate hours from time display
-    var dispId=pre+"f-time-display";
-    var dispEl=$(dispId);var timeRange2=dispEl?dispEl.textContent:"";
-    var tParts=timeRange2.split("—");
-    var hrs=0;
+    var dispEl=$(pre+"f-time-display");var timeRange2=dispEl?dispEl.textContent:"";
+    var tParts=timeRange2.split("—");var hrs=0;
     if(tParts.length===2){
-      var t1=tParts[0].trim().split(":");var t2=tParts[1].trim().split(":");
+      var t1=tParts[0].trim().split(":"),t2=tParts[1].trim().split(":");
       var mins=(parseInt(t2[0])*60+parseInt(t2[1]))-(parseInt(t1[0])*60+parseInt(t1[1]));
       hrs=Math.round(mins/60*10)/10;if(hrs<0)hrs=0;
     }
     days=hrs;
-  } else {
+  }else{
     from=$(pre+"f-from")?$(pre+"f-from").value:"";
     to=$(pre+"f-to")?$(pre+"f-to").value:"";
   }
@@ -1006,16 +990,10 @@ async function submitLeave(prefix){
   if(!isDayoff&&!isComp&&!usingTimeMode&&selPeriod==="full"&&!to)return;
   if(isDayoff&&!dayoffDate)return;if(isComp&&!compVal)return;
   var isHalf=!isDayoff&&!isComp&&!usingTimeMode&&selPeriod!=="full";
-  if(!usingTimeMode) days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
+  if(!usingTimeMode)days=isDayoff||isComp?1:isHalf?0.5:Math.max(1,Math.round((new Date(to)-new Date(from))/86400000)+1);
   var pLabel=selPeriod==="am"?" (ครึ่งวันเช้า)":selPeriod==="pm"?" (ครึ่งวันบ่าย)":"";
-
-  // Time range — read from display label set by picker
   var timeRange="";
-  if(usingTimeMode){
-    var dispEl=$(pre+"f-time-display");
-    if(dispEl)timeRange=dispEl.textContent||"";
-  }
-
+  if(usingTimeMode){var dispEl2=$(pre+"f-time-display");if(dispEl2)timeRange=dispEl2.textContent||"";}
   var noteText="";
   if(isDayoff)noteText="ทำงานแทน "+fmtDate(from)+" → หยุด "+fmtDate(dayoffDate)+(note?" · "+note:"");
   else if(isComp){var cp=compVal.split("|");noteText="ชดเชย: "+cp[2]+" ("+cp[1]+" "+fmtDate(cp[0])+")"+(note?" · "+note:"");}
@@ -1024,6 +1002,8 @@ async function submitLeave(prefix){
   var typeObj=null;for(var i=0;i<TYPES.length;i++){if(TYPES[i].id===selType){typeObj=TYPES[i];break;}}
   var rec={userId:currentUser._key,userRole:currentUser.role,employee:currentUser.name,dept:currentUser.dept,type:selType,label:typeObj?typeObj.label:selType,from:fmtDate(from),to:toDate,days:days,daysUnit:usingTimeMode?"ชั่วโมง":"วัน",note:noteText,status:"pending",submitted:fmtDate(new Date().toISOString().slice(0,10)),createdAt:Date.now()};
   if(timeRange)rec.timeRange=timeRange;
+  // ── Store compHolidayDate so we can filter it later ──
+  if(isComp&&compVal){var cpParts=compVal.split("|");if(cpParts[0])rec.compHolidayDate=cpParts[0];}
   await refHistory().push(rec);
   if(prefix==="mgr"){mgrSelectedType="";mgrSelectedPeriod="full";}else{selectedType="";selectedPeriod="full";}
   [pre+"f-from",pre+"f-to",pre+"f-note",pre+"f-dayoff",pre+"f-single-date"].forEach(function(id){var e=$(id);if(e)e.value="";});
@@ -1031,17 +1011,17 @@ async function submitLeave(prefix){
   var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="";
   var lf=$(pre+"label-from");if(lf)lf.textContent="วันที่เริ่มต้น";
   [pre+"dayoff-extra",pre+"comp-extra",pre+"f-time-range-wrap"].forEach(function(id){var e=$(id);if(e)e.classList.add("hidden");});
-  // Reset time display
   resetTimeBtn(prefix==="mgr"?"mgr":"emp");
-  // Restore date fields visibility
   removeSingleDate(prefix==="mgr"?"mgr":"emp");
   ["full","am","pm"].forEach(function(id){var b=$(pre+"period-"+id);if(!b)return;var a=id==="full";b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";b.querySelectorAll("div").forEach(function(e){e.style.color=a?"#fff":"";});});
   buildTypeButtons(pre+"type-btns",prefix==="mgr"?mgrSelectedType:selectedType,null);
+  // Rebuild dropdown to reflect newly used holiday
+  buildHolidayDropdown(prefix==="mgr"?mgrSelectedHolidayYear:selectedHolidayYear,pre+"f-comp-holiday");
   if(prefix==="mgr"){mgrUpdateSubmitBtn();show("mgr-leave-success");setTimeout(function(){hide("mgr-leave-success");},3000);renderMgrOverview();}
   else{updateSubmitBtn();show("emp-success");setTimeout(function(){hide("emp-success");},3000);}
 }
 
-// ── Admin ──────────────────────────────────────────────────────────
+// Admin
 function adminMainTab(tab,btn){
   document.querySelectorAll("#view-admin > .tabs .tab-btn").forEach(function(b){b.classList.remove("active");});
   btn.classList.add("active");
@@ -1090,7 +1070,7 @@ function renderRows(filtered,mode){
 
 async function approveItem(key,userId,type,days,unit){
   await refHistory().child(key+"/status").set("approved");
-  if(unit==="ชั่วโมง")return; // hours don't deduct quota days
+  if(unit==="ชั่วโมง")return;
   var q=getUserQuota(userId);var cur=q[type]||{used:0,total:0};
   await refQuota().child(userId+"/"+type+"/used").set((cur.used||0)+Number(days));
 }
@@ -1144,9 +1124,8 @@ function openEmpModal(key){
     $("em-name").value=u.name||"";$("em-username").value=u.username||"";$("em-password").value=u.password||"";
     $("em-position").value=u.position||"";$("em-startdate").value=u.startDate||"";
     $("em-dept").value=u.dept||"steak";$("em-role").value=u.role||"employee";
-    $("em-custom-label").value=u.customRoleLabel||"";
-    $("em-company").value=u.company||"";
-  } else {
+    $("em-custom-label").value=u.customRoleLabel||"";$("em-company").value=u.company||"";
+  }else{
     $("emp-modal-title").textContent="เพิ่มพนักงานใหม่";
     ["em-name","em-username","em-password","em-position","em-startdate","em-custom-label"].forEach(function(id){$(id).value="";});
     $("em-dept").value="steak";$("em-role").value="employee";$("em-company").value="";
