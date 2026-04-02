@@ -1367,17 +1367,60 @@ function exportExcel(){
   dlFile("\uFEFF"+[headers].concat(rows).map(function(r){return r.map(function(c){return "\""+String(c).replace(/"/g,"\"\"")+"\"";}).join(",");}).join("\r\n"),"text/csv","LeaveOS_"+currentBranch.toUpperCase()+"_"+stamp()+".csv");
 }
 function exportTigerSoft(){
-  var approved=getHistory().filter(function(h){return h.status==="approved";});if(!approved.length){alert("ไม่มีรายการที่อนุมัติแล้ว");return;}
+  var approved=getHistory().filter(function(h){return h.status==="approved";});
+  if(!approved.length){alert("ไม่มีรายการที่อนุมัติแล้ว");return;}
+
   var thM={"ม.ค.":"01","ก.พ.":"02","มี.ค.":"03","เม.ย.":"04","พ.ค.":"05","มิ.ย.":"06","ก.ค.":"07","ส.ค.":"08","ก.ย.":"09","ต.ค.":"10","พ.ย.":"11","ธ.ค.":"12"};
-  function pd(str){var p=str.trim().split(" ");if(p.length<3)return str;return p[0].padStart(2,"0")+"/"+(thM[p[1]]||"01")+"/"+(parseInt(p[2])-543);}
-  var tC={sick_cert:"SC",personal:"P",comp:"C",maternity:"M",special:"SP",dayoff:"DO",sick:"S"};
-  var tN={sick_cert:"Sick Leave (Medical Cert)",personal:"Personal Leave",comp:"Compensatory Leave",maternity:"Maternity Leave",special:"Special Leave",dayoff:"Day Off Exchange",sick:"Sick Leave"};
-  var users=getAllUsers();function getEmpId(uid){var idx=users.findIndex(function(u){return u._key===uid;});return idx>=0?String(idx+1).padStart(5,"0"):"00000";}
-  var headers=["EmpID","EmpName","Company","LeaveCode","LeaveDesc","StartDate","EndDate","TimeRange","Days","Remark"];
+  function thDateToISO(str){
+    if(!str)return "";
+    var p=str.trim().split(" ");
+    if(p.length<3)return str;
+    var d=p[0].padStart(2,"0"),m=thM[p[1]]||"01",y=parseInt(p[2]);
+    if(y>2400)y=y-543;
+    return y+"-"+m+"-"+d;
+  }
+
+  var ID_LEAVE_MAP={sick_cert:2,sick:18,personal:3,comp:17,maternity:5,special:8,dayoff:15};
+  var TYPE_MONEY_MAP={sick_cert:1,sick:1,personal:0,comp:1,maternity:1,special:1,dayoff:1};
+
+  function getLeaveType(h){
+    if(h.timeRange)return 2;
+    if(h.note&&h.note.indexOf("ครึ่งวันเช้า")>=0)return 3;
+    if(h.note&&h.note.indexOf("ครึ่งวันบ่าย")>=0)return 4;
+    return 1;
+  }
+
+  function parseTimeRange(tr){
+    if(!tr)return{s:"00:00",e:"00:00",total:"00:00"};
+    var parts=tr.split("—");
+    if(parts.length<2)return{s:"00:00",e:"00:00",total:"00:00"};
+    var s=parts[0].trim(),e=parts[1].trim();
+    function toMins(t){var p=t.split(":");return parseInt(p[0])*60+(parseInt(p[1])||0);}
+    var diff=toMins(e)-toMins(s);if(diff<0)diff=0;
+    var hh=Math.floor(diff/60),mm=diff%60;
+    return{s:s,e:e,total:String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0")};
+  }
+
+  var today=new Date();
+  var dataSave=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+
+  var headers=["PersonCode","document_No","ID_Leave","Data_Save","Leave_Memo","Leave_type","Leave_DateS","Leave_DateE","Leave_DateTotal","Leave_TimeS","Leave_TimeE","Leave_TimeTotal","Type_Money"];
+
   var rows=approved.map(function(h){
-    var empUser=usersData[h.userId];var comp=empUser&&empUser.company?empUser.company:"";
-    return [getEmpId(h.userId),h.employee,comp,tC[h.type]||h.type,tN[h.type]||h.label,pd(h.from),pd(h.to),h.timeRange||"",h.days,h.note||""];
+    var empUser=usersData[h.userId];
+    var personCode=empUser&&empUser.username?empUser.username:(h.userId||"");
+    var idLeave=ID_LEAVE_MAP[h.type]||3;
+    var leaveType=getLeaveType(h);
+    var dateS=thDateToISO(h.from);
+    var dateE=thDateToISO(h.to)||dateS;
+    var tr=parseTimeRange(h.timeRange);
+    var timeS=leaveType===2?tr.s:"00:00";
+    var timeE=leaveType===2?tr.e:"00:00";
+    var timeTotal=leaveType===2?tr.total:"00:00";
+    var typeMoney=TYPE_MONEY_MAP[h.type]!==undefined?TYPE_MONEY_MAP[h.type]:0;
+    return[personCode,"",idLeave,dataSave,h.note||"",leaveType,dateS,dateE,h.days,timeS,timeE,timeTotal,typeMoney];
   });
+
   dlFile("\uFEFF"+[headers].concat(rows).map(function(r){return r.map(function(c){return "\""+String(c).replace(/"/g,"\"\"")+"\"";}).join(",");}).join("\r\n"),"text/csv","TigerSoft_"+currentBranch.toUpperCase()+"_"+stamp()+".csv");
 }
 function dlFile(content,type,filename){var blob=new Blob([content],{type:type+";charset=utf-8"});var url=URL.createObjectURL(blob);var a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
