@@ -391,7 +391,19 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <option value="eng">ฝ่ายวิศวกรรม</option><option value="crop">ฝ่ายพืชอาหารสัตว์</option>
           <option value="livestock">ฝ่ายปศุสัตว์</option><option value="dairy">ฝ่ายโรงงานนม</option>
           <option value="horticulture">ฝ่ายพืชสวนผลไม้</option><option value="agrimech">ฝ่ายบริการเครื่องกลเกษตร</option>
-          <option value="special_dept">ฝ่ายพิเศษ</option><option value="other">อื่นๆ</option>
+          <option value="special_dept">ฝ่ายพิเศษ</option>
+          <option value="cmk">ฝ่าย CMK</option>
+          <option value="office">ฝ่ายสำนักงาน</option>
+          <option value="legal">ฝ่ายกฎหมาย</option>
+          <option value="sales">ฝ่ายขาย</option>
+          <option value="special_event">ฝ่ายกิจกรรมพิเศษ</option>
+          <option value="finance">ฝ่ายการเงิน</option>
+          <option value="marketing">ฝ่ายการตลาด</option>
+          <option value="steak_rangsit">ฝ่ายโชคชัยสเต็คเฮ้าส์รังสิต</option>
+          <option value="bakery">ฝ่ายเบเกอรี่</option>
+          <option value="dog_training">ศูนย์ฝึกสุนัขโชคชัย</option>
+          <option value="property">ฝ่ายดูแลทรัพย์สินส่วนตัว</option>
+          <option value="other">อื่นๆ</option>
         </select>
       </div>
       <div><label class="field-label">บริษัท</label>
@@ -505,6 +517,17 @@ var DEPTS={
   horticulture:{label:"ฝ่ายพืชสวนผลไม้",color:"#15803d",bg:"#f0fdf4",border:"#86efac"},
   agrimech:{label:"ฝ่ายบริการเครื่องกลเกษตร",color:"#b45309",bg:"#fffbeb",border:"#fcd34d"},
   special_dept:{label:"ฝ่ายพิเศษ",color:"#6b21a8",bg:"#f5f3ff",border:"#ddd6fe"},
+  cmk:{label:"ฝ่าย CMK",color:"#0f766e",bg:"#f0fdfa",border:"#99f6e4"},
+  office:{label:"ฝ่ายสำนักงาน",color:"#475569",bg:"#f8fafc",border:"#cbd5e1"},
+  legal:{label:"ฝ่ายกฎหมาย",color:"#7c2d12",bg:"#fff7ed",border:"#fed7aa"},
+  sales:{label:"ฝ่ายขาย",color:"#0369a1",bg:"#f0f9ff",border:"#7dd3fc"},
+  special_event:{label:"ฝ่ายกิจกรรมพิเศษ",color:"#a21caf",bg:"#fdf4ff",border:"#f0abfc"},
+  finance:{label:"ฝ่ายการเงิน",color:"#166534",bg:"#f0fdf4",border:"#86efac"},
+  marketing:{label:"ฝ่ายการตลาด",color:"#b45309",bg:"#fffbeb",border:"#fcd34d"},
+  steak_rangsit:{label:"ฝ่ายโชคชัยสเต็คเฮ้าส์รังสิต",color:"#9f1239",bg:"#fff1f2",border:"#fda4af"},
+  bakery:{label:"ฝ่ายเบเกอรี่",color:"#92400e",bg:"#fef3c7",border:"#fcd34d"},
+  dog_training:{label:"ศูนย์ฝึกสุนัขโชคชัย",color:"#78350f",bg:"#fefce8",border:"#fde68a"},
+  property:{label:"ฝ่ายดูแลทรัพย์สินส่วนตัว",color:"#1e3a5f",bg:"#eff6ff",border:"#93c5fd"},
   other:{label:"อื่นๆ",color:"#555",bg:"#f5f5f5",border:"#e0e0e0"}
 };
 var TIME_RANGE_TYPES=["sick_cert","personal","sick"];
@@ -552,12 +575,19 @@ function loadSession(){try{var d=localStorage.getItem("lOS_u");return d?JSON.par
 function clearSession(){try{localStorage.removeItem("lOS_u");}catch(e){}}
 
 function startListeners(){
+  stopListeners();
+  refUsers().on("value",function(s){usersData=s.val()||{};refreshViews();});
   refHistory().on("value",function(s){historyData=s.val()||{};refreshViews();});
   refQuota().on("value",function(s){quotaData=s.val()||{};refreshViews();});
-  refUsers().on("value",function(s){usersData=s.val()||{};refreshViews();});
+  db.ref(branchPath("allowedHolidays")).on("value",function(s){allowedHolidaysData=s.val()||{};refreshViews();});
 }
 function stopListeners(){
-  if(currentBranch){db.ref(currentBranch+"/history").off();db.ref(currentBranch+"/quota").off();db.ref(currentBranch+"/users").off();}
+  if(currentBranch){
+    db.ref(currentBranch+"/users").off();
+    db.ref(currentBranch+"/history").off();
+    db.ref(currentBranch+"/quota").off();
+    db.ref(currentBranch+"/allowedHolidays").off();
+  }
 }
 function refreshViews(){
   if(!currentUser)return;
@@ -613,21 +643,6 @@ function buildHolidayDropdown(year,selId,uid){
 
 async function initDB(){
   show("db-loading");
-  try{
-    var oldUsers=await db.ref("users").once("value");
-    if(oldUsers.val()){
-      var farmUsersSnap=await db.ref("farm/users").once("value");
-      if(!farmUsersSnap.val()){
-        var uUpd={};
-        Object.entries(oldUsers.val()).forEach(function(e){uUpd["farm/users/"+e[0]]=e[1];});
-        var oldHist=await db.ref("history").once("value");
-        if(oldHist.val())Object.entries(oldHist.val()).forEach(function(e){uUpd["farm/history/"+e[0]]=e[1];});
-        var oldQuota=await db.ref("quota").once("value");
-        if(oldQuota.val())Object.entries(oldQuota.val()).forEach(function(e){uUpd["farm/quota/"+e[0]]=e[1];});
-        await db.ref("/").update(uUpd);
-      }
-    }
-  }catch(e){console.warn("migrate:",e);}
   try{
     var hoSnap=await db.ref("ho/users").once("value");
     if(!hoSnap.val()){
@@ -1153,17 +1168,6 @@ async function confirmDelete(){if(!delTargetId)return;await refUser(delTargetId)
 // ── Allowed comp holidays per user ────────────────────────────────
 function refAllowedHolidays(uid){return db.ref(branchPath("allowedHolidays/"+uid));}
 var allowedHolidaysData={};
-// listen alongside other listeners
-var _origStartListeners=startListeners;
-startListeners=function(){
-  _origStartListeners();
-  db.ref(branchPath("allowedHolidays")).on("value",function(s){allowedHolidaysData=s.val()||{};refreshViews();});
-};
-var _origStopListeners=stopListeners;
-stopListeners=function(){
-  _origStopListeners();
-  if(currentBranch)db.ref(currentBranch+"/allowedHolidays").off();
-};
 function getUserAllowedHolidays(uid){
   // null = all allowed (not configured yet), {} = none allowed
   return allowedHolidaysData[uid]||null;
