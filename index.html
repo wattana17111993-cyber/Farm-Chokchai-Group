@@ -632,13 +632,12 @@ var SICK_SUBTYPES=[
 // ลาอื่นๆ: เอาลางานศพออก, เปลี่ยนลาราชการทหาร → ลาระดมพล
 var OTHER_SUBTYPES=[
   {id:"other_work_injury",label:"เจ็บในงาน",sub:"Work Injury",icon:"🦺"},
-  {id:"other_marriage",label:"ลาแต่งงาน",sub:"Marriage Leave",icon:"💍"},
   {id:"other_military",label:"ลาระดมพล",sub:"Military Mobilization",icon:"🎖️"},
   {id:"other_ordained",label:"ลาอุปสมบท",sub:"Ordination Leave",icon:"🙏"},
   {id:"other_custom",label:"อื่นๆ (ระบุเพิ่ม)",sub:"Custom",icon:"📝"}
 ];
 var TIME_RANGE_TYPES=["sick","personal"];
-var DEFAULT_QUOTA={annual:{used:0,total:6},sick:{used:0,total:30},personal:{used:0,total:3},comp:{used:0,total:20},maternity:{used:0,total:90},special:{used:0,total:3},dayoff:{used:0,total:0},other:{used:0,total:0}};
+var DEFAULT_QUOTA={annual:{used:0,total:6},sick:{used:0,total:30},personal:{used:0,total:6},comp:{used:0,total:20},maternity:{used:0,total:120},special:{used:0,total:7},dayoff:{used:0,total:0},other:{used:0,total:0}};
 var H2568=[{date:"2568-01-01",day:"พุธ",name:"วันขึ้นปีใหม่"},{date:"2568-02-12",day:"พุธ",name:"วันมาฆบูชา"},{date:"2568-04-06",day:"อาทิตย์",name:"วันจักรี"},{date:"2568-04-13",day:"อาทิตย์",name:"วันสงกรานต์"},{date:"2568-04-14",day:"จันทร์",name:"วันสงกรานต์"},{date:"2568-04-15",day:"อังคาร",name:"วันสงกรานต์"},{date:"2568-05-01",day:"พฤหัสบดี",name:"วันแรงงานแห่งชาติ"},{date:"2568-05-04",day:"อาทิตย์",name:"วันฉัตรมงคล"},{date:"2568-05-11",day:"อาทิตย์",name:"วันวิสาขบูชา"},{date:"2568-06-02",day:"จันทร์",name:"ตาม มติ ครม."},{date:"2568-06-03",day:"อังคาร",name:"วันเฉลิมพระชนมพรรษาราชินี"},{date:"2568-07-10",day:"พฤหัสบดี",name:"วันอาสาฬหบูชา"},{date:"2568-07-28",day:"จันทร์",name:"วันเฉลิมพระชนมพรรษา ร.10"},{date:"2568-08-11",day:"จันทร์",name:"ตาม มติ ครม."},{date:"2568-08-12",day:"อังคาร",name:"วันแม่แห่งชาติ"},{date:"2568-10-13",day:"จันทร์",name:"วันนวมินทรมหาราช"},{date:"2568-10-23",day:"พฤหัสบดี",name:"วันปิยมหาราช"},{date:"2568-12-05",day:"ศุกร์",name:"วันชาติและวันพ่อแห่งชาติ"},{date:"2568-12-10",day:"พุธ",name:"วันรัฐธรรมนูญ"},{date:"2568-12-31",day:"พุธ",name:"วันสิ้นปี"}];
 var H2569=[{date:"2569-01-01",day:"พฤหัสบดี",name:"วันขึ้นปีใหม่"},{date:"2569-01-02",day:"ศุกร์",name:"วันหยุดตามมติ ครม."},{date:"2569-03-03",day:"อังคาร",name:"วันมาฆบูชา"},{date:"2569-04-06",day:"จันทร์",name:"วันจักรี"},{date:"2569-04-13",day:"จันทร์",name:"วันสงกรานต์"},{date:"2569-04-14",day:"อังคาร",name:"วันสงกรานต์"},{date:"2569-04-15",day:"พุธ",name:"วันสงกรานต์"},{date:"2569-05-01",day:"ศุกร์",name:"วันแรงงานแห่งชาติ"},{date:"2569-05-04",day:"จันทร์",name:"วันฉัตรมงคล"},{date:"2569-05-31",day:"อาทิตย์",name:"วันวิสาขบูชา"},{date:"2569-06-03",day:"พุธ",name:"วันเฉลิมพระชนมพรรษาราชินี"},{date:"2569-07-28",day:"อังคาร",name:"วันเฉลิมพระชนมพรรษา ร.10"},{date:"2569-07-29",day:"พุธ",name:"วันอาสาฬหบูชา"},{date:"2569-08-12",day:"พุธ",name:"วันแม่แห่งชาติ"},{date:"2569-10-13",day:"อังคาร",name:"วันนวมินทรมหาราช"},{date:"2569-10-23",day:"ศุกร์",name:"วันปิยมหาราช"},{date:"2569-12-05",day:"เสาร์",name:"วันชาติและวันพ่อแห่งชาติ"},{date:"2569-12-10",day:"พฤหัสบดี",name:"วันรัฐธรรมนูญ"},{date:"2569-12-31",day:"พฤหัสบดี",name:"วันสิ้นปี"}];
 var MONTHS=["","ม.ค.","ก.พ.","มี.ค.","เม.ย.","พ.ค.","มิ.ย.","ก.ค.","ส.ค.","ก.ย.","ต.ค.","พ.ย.","ธ.ค."];
@@ -1090,14 +1089,17 @@ function handleTypeSelect(id,fromId,toId,toWrapId,labelFromId,dayoffId,dayoffExt
   if(id==="dayoff"){
     // สลับวันหยุด: แสดงแค่วันที่ทำงาน (f-from) + วันที่ขอสลับหยุด (f-dayoff)
     lf.textContent="วันที่ทำงาน";tw.style.display="none";
+    tw.setAttribute("data-dayoff","1");
     if(de)de.classList.remove("hidden");if(ce)ce.classList.add("hidden");
     var ft=$(toId);if(ft)ft.value="";
   } else if(id==="comp"){
     lf.textContent="วันที่ขอลาชดเชย";tw.style.display="none";
+    tw.removeAttribute("data-dayoff");
     if(de)de.classList.add("hidden");if(ce){ce.classList.remove("hidden");buildHolidayDropdown(compSelId==="mgr-f-comp-holiday"?mgrSelectedHolidayYear:selectedHolidayYear,compSelId);}
     var ft2=$(toId);if(ft2)ft2.value="";
   } else {
-    lf.textContent="วันที่เริ่มต้น";tw.style.display="";
+    lf.textContent="วันที่เริ่มต้น";
+    var twEl2=$(toWrapId);if(twEl2){twEl2.removeAttribute("data-dayoff");twEl2.style.display="";}
     if(de)de.classList.add("hidden");if(ce)ce.classList.add("hidden");
     var fd=$(dayoffId);if(fd)fd.value="";
   }
@@ -1109,7 +1111,12 @@ function applyPeriod(p,fullId,amId,pmId,toWrapId,fromId,toId){
     b.style.background=a?"#1a1a1a":"#fff";b.style.borderColor=a?"#1a1a1a":"#e8e8e8";
     b.querySelectorAll("div").forEach(function(el){el.style.color=a?"#fff":"";});
   });
-  var tw=$(toWrapId);if(tw)tw.style.display=p==="full"?"":"none";
+  var tw=$(toWrapId);
+  // ถ้าเป็นสลับวันหยุด ไม่แสดงวันสิ้นสุดทุกกรณี
+  if(tw){
+    var isDayoff=tw.getAttribute("data-dayoff")==="1";
+    tw.style.display=(isDayoff||p!=="full")?"none":"";
+  }
   if(p!=="full"){var ft=$(toId);if(ft)ft.value=$(fromId)?$(fromId).value:"";}
 }
 function setYearBtn(y,id68,id69){
