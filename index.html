@@ -367,6 +367,8 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
           <button onclick="downloadTemplate()" style="padding:9px 14px;border-radius:10px;border:1.5px solid #d1fae5;background:#f0fdf4;color:#166534;font-size:13px;font-weight:600;cursor:pointer">⬇️ Template</button>
           <label style="padding:9px 14px;border-radius:10px;border:1.5px solid #ddd6fe;background:#f5f3ff;color:#5b21b6;font-size:13px;font-weight:600;cursor:pointer">📥 Import<input type="file" id="import-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="importExcel(event)"></label>
           <button onclick="openEmpModal(null)" style="padding:9px 14px;border-radius:10px;border:none;background:#1a1a1a;color:#fff;font-size:13px;font-weight:600;cursor:pointer">+ เพิ่มพนักงาน</button>
+          <button onclick="syncQuotaDefaults()" style="padding:9px 14px;border-radius:10px;border:1.5px solid #fde68a;background:#fffbeb;color:#92400e;font-size:13px;font-weight:600;cursor:pointer">🔄 อัปเดตโควต้า</button>
+          <button onclick="openCopyEmpModal()" style="padding:9px 14px;border-radius:10px;border:1.5px solid #bfdbfe;background:#eff6ff;color:#1e40af;font-size:13px;font-weight:600;cursor:pointer">📋 คัดลอกพนักงาน</button>
         </div>
       </div>
       <div id="import-preview" class="hidden" style="margin-bottom:16px;background:#fff;border-radius:14px;border:1px solid #eee;overflow:hidden">
@@ -540,6 +542,42 @@ header{background:#fff;border-bottom:1px solid #eee;position:sticky;top:0;z-inde
   </div>
 </div>
 
+<!-- Copy Employee Modal -->
+<div id="copy-emp-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:500px">
+    <h3>📋 คัดลอกพนักงานข้ามสาขา</h3>
+    <p style="font-size:12px;color:#999;margin-bottom:16px">คัดลอกพนักงานจากสาขาหนึ่งไปอีกสาขา (username/password เดิม)</p>
+    <div style="display:flex;gap:10px;margin-bottom:14px">
+      <div style="flex:1"><label class="field-label">จากสาขา</label>
+        <select id="copy-from-branch" class="field-input" onchange="loadCopySourceEmps()">
+          <option value="farm">🐄 Farm Chokchai</option>
+          <option value="ho">🏢 HO สำนักงานใหญ่</option>
+        </select>
+      </div>
+      <div style="flex:1"><label class="field-label">ไปสาขา</label>
+        <select id="copy-to-branch" class="field-input">
+          <option value="ho">🏢 HO สำนักงานใหญ่</option>
+          <option value="farm">🐄 Farm Chokchai</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:10px"><input class="search-input" id="copy-search" placeholder="🔍 ค้นหาชื่อ..." oninput="renderCopyList()" style="width:100%"></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;color:#aaa" id="copy-count"></span>
+      <div style="display:flex;gap:6px">
+        <button onclick="selectAllCopy(true)" style="padding:4px 10px;border-radius:6px;border:1.5px solid #d1fae5;background:#f0fdf4;color:#166534;font-size:11px;font-weight:600;cursor:pointer">เลือกทั้งหมด</button>
+        <button onclick="selectAllCopy(false)" style="padding:4px 10px;border-radius:6px;border:1.5px solid #fecaca;background:#fef2f2;color:#991b1b;font-size:11px;font-weight:600;cursor:pointer">ยกเลิกทั้งหมด</button>
+      </div>
+    </div>
+    <div id="copy-emp-list" style="max-height:280px;overflow-y:auto;border:1px solid #eee;border-radius:10px"></div>
+    <div id="copy-result" class="hidden" style="margin-top:10px;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;font-size:13px;color:#166534"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('copy-emp-modal')">ปิด</button>
+      <button class="btn-confirm" onclick="confirmCopyEmps()">📋 คัดลอกที่เลือก</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-app-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.23.0/firebase-database-compat.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -634,7 +672,7 @@ var OTHER_SUBTYPES=[
   {id:"other_work_injury",label:"เจ็บในงาน",sub:"Work Injury",icon:"🦺"},
   {id:"other_military",label:"ลาระดมพล",sub:"Military Mobilization",icon:"🎖️"},
   {id:"other_ordained",label:"ลาอุปสมบท",sub:"Ordination Leave",icon:"🙏"},
-  
+  {id:"other_custom",label:"อื่นๆ (ระบุเพิ่ม)",sub:"Custom",icon:"📝"}
 ];
 var TIME_RANGE_TYPES=["sick","personal"];
 var DEFAULT_QUOTA={annual:{used:0,total:6},sick:{used:0,total:30},personal:{used:0,total:6},comp:{used:0,total:20},maternity:{used:0,total:120},special:{used:0,total:7},dayoff:{used:0,total:0},other:{used:0,total:0}};
@@ -919,13 +957,27 @@ function openTimePicker(prefix){
 }
 function confirmTimePicker(){
   var s=$("tp-start").value||"08:00",e=$("tp-end").value||"17:00";
-  var dId=timePickerPrefix==="mgr"?"mgr-f-time-display":"f-time-display",wId=timePickerPrefix==="mgr"?"mgr-f-time-range-wrap":"f-time-range-wrap",pre=timePickerPrefix==="mgr"?"mgr-":"";
-  var ids=timePickerPrefix==="mgr"?["mgr-period-full","mgr-period-am","mgr-period-pm"]:["period-full","period-am","period-pm"];
-  ids.forEach(function(id){var b=$(id);if(!b)return;b.style.background="#fff";b.style.borderColor="#e8e8e8";b.querySelectorAll("div").forEach(function(el){el.style.color="";});});
+  var pre=timePickerPrefix==="mgr"?"mgr-":"";
+  var dId=pre+"f-time-display",wId=pre+"f-time-range-wrap";
+  // reset period buttons style
+  ["full","am","pm"].forEach(function(id){
+    var b=$(pre+"period-"+id);if(!b)return;
+    b.style.background="#fff";b.style.borderColor="#e8e8e8";
+    b.querySelectorAll("div").forEach(function(el){el.style.color="";});
+  });
+  // ซ่อน to-wrap
   var tw=$(pre+"f-to-wrap");if(tw)tw.style.display="none";
+  // ซ่อน from แสดง single-date
+  var fw=$(pre+"f-from");if(fw)fw.closest("div").style.display="none";
+  var sw=$(pre+"f-single-date-wrap");if(sw)sw.classList.remove("hidden");
+  // อัปเดต display
   var disp=$(dId);if(disp){disp.textContent=s+"—"+e;disp.style.color="#aaa";}
-  var btn=$(wId);if(btn){btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";var lbl=btn.querySelector(".time-btn-label");if(lbl)lbl.style.color="#fff";}
-  applySingleDate(timePickerPrefix);closeModal("time-picker-modal");
+  // ไฮไลต์ปุ่มช่วงเวลา
+  var btn=$(wId);
+  if(btn){btn.style.background="#1a1a1a";btn.style.borderColor="#1a1a1a";btn.dataset.selected="1";
+    var lbl=btn.querySelector(".time-btn-label");if(lbl)lbl.style.color="#fff";}
+  closeModal("time-picker-modal");
+  if(timePickerPrefix==="mgr")mgrUpdateSubmitBtn();else updateSubmitBtn();
 }
 
 // ── Employee view ────────────────────────────────────────────────
@@ -974,7 +1026,14 @@ function selectType(id){
 }
 function setPeriod(p){
   selectedPeriod=p;resetTimeBtn("emp");removeSingleDate("emp");
-  applyPeriod(p,"period-full","period-am","period-pm","f-to-wrap","f-from","f-to");updateSubmitBtn();
+  var tw=$("f-to-wrap");
+  if(tw){
+    if(selectedType==="dayoff")tw.style.display="none";
+    else tw.style.display=p==="full"?"":"none";
+  }
+  applyPeriodBtns(p,"period-full","period-am","period-pm");
+  if(p!=="full"){var ft=$("f-to");if(ft)ft.value=$("f-from")?$("f-from").value:"";}
+  updateSubmitBtn();
 }
 function selectHolidayYear(y){selectedHolidayYear=y;setYearBtn(y,"btn-year-68","btn-year-69");buildHolidayDropdown(y,"f-comp-holiday");updateSubmitBtn();}
 
@@ -1041,7 +1100,17 @@ function mgrUpdateSubmitBtn(){
   else if(timeMode)el.disabled=!mgrSelectedType||!from;
   else el.disabled=!mgrSelectedType||!from||(mgrSelectedPeriod==="full"&&!to);
 }
-function mgrSetPeriod(p){mgrSelectedPeriod=p;resetTimeBtn("mgr");removeSingleDate("mgr");applyPeriod(p,"mgr-period-full","mgr-period-am","mgr-period-pm","mgr-f-to-wrap","mgr-f-from","mgr-f-to");mgrUpdateSubmitBtn();}
+function mgrSetPeriod(p){
+  mgrSelectedPeriod=p;resetTimeBtn("mgr");removeSingleDate("mgr");
+  var tw=$("mgr-f-to-wrap");
+  if(tw){
+    if(mgrSelectedType==="dayoff")tw.style.display="none";
+    else tw.style.display=p==="full"?"":"none";
+  }
+  applyPeriodBtns(p,"mgr-period-full","mgr-period-am","mgr-period-pm");
+  if(p!=="full"){var ft=$("mgr-f-to");if(ft)ft.value=$("mgr-f-from")?$("mgr-f-from").value:"";}
+  mgrUpdateSubmitBtn();
+}
 function mgrSelectHolidayYear(y){mgrSelectedHolidayYear=y;setYearBtn(y,"mgr-btn-year-68","mgr-btn-year-69");buildHolidayDropdown(y,"mgr-f-comp-holiday");mgrUpdateSubmitBtn();}
 
 // ── Shared UI ────────────────────────────────────────────────────
@@ -1089,12 +1158,10 @@ function handleTypeSelect(id,fromId,toId,toWrapId,labelFromId,dayoffId,dayoffExt
   if(id==="dayoff"){
     // สลับวันหยุด: แสดงแค่วันที่ทำงาน (f-from) + วันที่ขอสลับหยุด (f-dayoff)
     lf.textContent="วันที่ทำงาน";tw.style.display="none";
-    tw.setAttribute("data-dayoff","1");
     if(de)de.classList.remove("hidden");if(ce)ce.classList.add("hidden");
     var ft=$(toId);if(ft)ft.value="";
   } else if(id==="comp"){
     lf.textContent="วันที่ขอลาชดเชย";tw.style.display="none";
-    tw.removeAttribute("data-dayoff");
     if(de)de.classList.add("hidden");if(ce){ce.classList.remove("hidden");buildHolidayDropdown(compSelId==="mgr-f-comp-holiday"?mgrSelectedHolidayYear:selectedHolidayYear,compSelId);}
     var ft2=$(toId);if(ft2)ft2.value="";
   } else {
@@ -1423,6 +1490,101 @@ function confirmExportTigerSoft(){
   closeModal("tigersoft-modal");
 }
 function dlFile(content,type,filename){var blob=new Blob([content],{type:type+";charset=utf-8"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);}
+
+// ── Sync quota defaults for all users ────────────────────────────
+async function syncQuotaDefaults(){
+  if(!confirm("อัปเดตโควต้าวันลาให้พนักงานทุกคนตามเงื่อนไขใหม่?\n(จะอัปเดตเฉพาะ total ที่ยังเป็น 0 หรือต่ำกว่า default)"))return;
+  var uSnap=await refUsers().once("value"),uAll=uSnap.val()||{};
+  var qSnap=await refQuota().once("value"),qAll=qSnap.val()||{};
+  var upd={};
+  Object.entries(uAll).forEach(function(e){
+    var k=e[0],u=e[1];
+    if(!canLeave(u.role))return;
+    var cur=qAll[k]||{};
+    var merged={};
+    Object.keys(DEFAULT_QUOTA).forEach(function(type){
+      var def=DEFAULT_QUOTA[type];
+      var saved=cur[type]||{};
+      merged[type]={
+        used:saved.used||0,
+        total:(saved.total&&saved.total>=def.total)?saved.total:def.total
+      };
+    });
+    upd[k]=merged;
+  });
+  if(Object.keys(upd).length){
+    await refQuota().update(upd);
+    alert("✅ อัปเดตโควต้าเรียบร้อย "+Object.keys(upd).length+" คน");
+  }else{alert("ไม่มีข้อมูลที่ต้องอัปเดต");}
+}
+
+// ── Copy employees across branches ───────────────────────────────
+var copySourceEmps=[];
+async function openCopyEmpModal(){
+  $("copy-search").value="";
+  $("copy-result").classList.add("hidden");
+  // default: copy FROM opposite branch
+  var fromBr=currentBranch==="farm"?"ho":"farm";
+  var toBr=currentBranch;
+  $("copy-from-branch").value=fromBr;
+  $("copy-to-branch").value=toBr;
+  await loadCopySourceEmps();
+  show("copy-emp-modal");
+}
+async function loadCopySourceEmps(){
+  var fromBr=$("copy-from-branch").value;
+  var snap=await db.ref(fromBr+"/users").once("value");
+  var all=snap.val()||{};
+  copySourceEmps=Object.entries(all).map(function(e){return Object.assign({},e[1],{_key:e[0]});});
+  renderCopyList();
+}
+function renderCopyList(){
+  var search=($("copy-search").value||"").toLowerCase();
+  var filtered=copySourceEmps.filter(function(u){
+    return !search||u.name.toLowerCase().includes(search)||(u.username||"").toLowerCase().includes(search);
+  });
+  $("copy-count").textContent="พบ "+filtered.length+" คน";
+  if(!filtered.length){$("copy-emp-list").innerHTML="<div class='empty'>ไม่พบพนักงาน</div>";return;}
+  $("copy-emp-list").innerHTML=filtered.map(function(u){
+    var dept=u.dept?((DEPTS[u.dept]&&DEPTS[u.dept].label)||u.dept):"—";
+    var comp=u.company&&COMPANIES[u.company]?COMPANIES[u.company].short:"";
+    return "<label style='display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid #f5f5f5;cursor:pointer'>"
+      +"<input type='checkbox' class='copy-cb' data-key='"+u._key+"' style='width:15px;height:15px;flex-shrink:0'>"
+      +"<div style='flex:1;min-width:0'>"
+        +"<div style='font-size:13px;font-weight:600;color:#1a1a1a'>"+u.name+"</div>"
+        +"<div style='font-size:11px;color:#aaa'>"+dept+(comp?" · "+comp:"")+" · "+( ROLE_LABEL[u.role]||u.role)+"</div>"
+      +"</div></label>";
+  }).join("");
+}
+function selectAllCopy(val){document.querySelectorAll(".copy-cb").forEach(function(cb){cb.checked=val;});}
+async function confirmCopyEmps(){
+  var fromBr=$("copy-from-branch").value,toBr=$("copy-to-branch").value;
+  if(fromBr===toBr){alert("สาขาต้นทางและปลายทางเหมือนกัน");return;}
+  var checked=Array.from(document.querySelectorAll(".copy-cb:checked")).map(function(cb){return cb.dataset.key;});
+  if(!checked.length){alert("กรุณาเลือกพนักงานอย่างน้อย 1 คน");return;}
+  // โหลด users ปลายทางเพื่อเช็ค username ซ้ำ
+  var toSnap=await db.ref(toBr+"/users").once("value"),toAll=toSnap.val()||{};
+  var existingUsernames=Object.values(toAll).map(function(u){return u.username;});
+  var toAdd=[],skipped=[];
+  checked.forEach(function(key){
+    var u=copySourceEmps.filter(function(x){return x._key===key;})[0];if(!u)return;
+    if(existingUsernames.includes(u.username))skipped.push(u.name);
+    else toAdd.push(u);
+  });
+  if(!toAdd.length){alert("ไม่มีพนักงานที่คัดลอกได้ (username ซ้ำทั้งหมด)");return;}
+  var uUpd={},qUpd={};
+  toAdd.forEach(function(u){
+    var nk=db.ref(toBr+"/users").push().key;
+    uUpd[nk]={name:u.name,username:u.username,password:u.password,position:u.position||"",startDate:u.startDate||"",dept:u.dept||null,role:u.role||"employee",avatar:u.avatar||u.name[0],color:u.color||"#1a1a1a",customRoleLabel:u.customRoleLabel||"",company:u.company||""};
+    if(canLeave(u.role))qUpd[nk]=JSON.parse(JSON.stringify(DEFAULT_QUOTA));
+  });
+  await db.ref(toBr+"/users").update(uUpd);
+  if(Object.keys(qUpd).length)await db.ref(toBr+"/quota").update(qUpd);
+  var brLabel={farm:"Farm Chokchai",ho:"HO สำนักงานใหญ่"};
+  var msg="✅ คัดลอกสำเร็จ "+toAdd.length+" คน ไปยัง "+brLabel[toBr];
+  if(skipped.length)msg+="\n⚠️ ข้าม "+skipped.length+" คน (username ซ้ำ): "+skipped.join(", ");
+  var res=$("copy-result");res.textContent=msg.replace("\n⚠️","  ⚠️");res.classList.remove("hidden");
+}
 
 initDB();
 </script>
